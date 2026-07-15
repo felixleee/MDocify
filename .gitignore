@@ -1,0 +1,23 @@
+# ── 빌드 산출물 ──
+/release/
+/MDocify.exe
+/MDocify.zip
+MDocify-app/bin/
+MDocify-app/dist/
+
+# ── 로컬 개발 설정 ──
+.claude/
+
+# ── 로그 ──
+*.log
+
+# ── 임시/상태 파일 ──
+.tmp/
+.storage/
+**/.storage/
+window_state.config.json
+
+# ── OS 부산물 ──
+Thumbs.db
+.DS_Store
+desktop.ini

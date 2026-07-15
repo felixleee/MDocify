@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang='ko'>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>MDocify · md2docx</title>
+    <link rel="icon" type="image/png" href="data:image/png;base64,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">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="vendor/marked.min.js"></script>
+    <script src="vendor/docx.js"></script>
+    <script src="vendor/paged.polyfill.js"></script>
+    <script src="js/diagram.js"></script>
+    <script src="js/templates/clean.js"></script>
+    <script src="js/md2docx.js"></script>
+  </head>
+  <body>
+    <div id='bar'>
+      <span class='brand'>
+        <svg class='brand-mark' width='30' height='30' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'>
+          <rect x='1' y='1' width='46' height='46' rx='12' fill='#2563eb'/>
+          <path d='M10 33 V18 L20 28 L30 18 V33' fill='none' stroke='#fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/>
+          <path class='spark big' d='M36.5 8 C36.5 12.8 38.7 15 43.5 15 C38.7 15 36.5 17.2 36.5 22 C36.5 17.2 34.3 15 29.5 15 C34.3 15 36.5 12.8 36.5 8 Z' fill='#fff'/>
+          <path class='spark small' d='M40 20 C40 24 41 25 45 25 C41 25 40 26 40 30 C40 26 39 25 35 25 C39 25 40 24 40 20 Z' fill='#fff' opacity='0.9'/>
+        </svg>
+        <span class='brand-lock'><span class='brand-title'><span class='m-hi'>MD</span><span class='m-rest'>ocify</span><span class='season'>md2docx</span></span></span>
+      </span>
+      <button id='btnOpenTop' title='다른 MD 파일 열기'>MD 파일 열기</button>
+      <label class='mode-sw' title='템플릿'>템플릿
+        <select id='tplSelect'>
+          <option value='clean'>표준 (편집용)</option>
+        </select>
+      </label>
+      <span class='spacer'></span>
+      <button id='btnDocSettings' title='문서 설정 (색·폰트·크기)'>문서 설정</button>
+      <label class='mode-sw' title='다크 모드'>다크<input type='checkbox' id='darkToggle'></label>
+      <button id='btnSave' title='현재 내용을 .docx 로 저장'>Word로 저장 (.docx)</button>
+      <input id='fileInput' type='file' accept='.md,.markdown,.txt' style='display:none'>
+    </div>
+    <div id='themeModal' hidden>
+      <div class='tm-card'>
+        <div class='tm-head'>
+          <span class='tm-title'>문서 설정</span>
+          <button class='tm-close' id='tmClose' title='닫기'>×</button>
+        </div>
+        <div id='tm-grid'></div>
+        <div class='tm-custom' id='tmCustom'>
+          <label for='tmColor'>직접 선택</label>
+          <input type='color' id='tmColor' value='#2563eb'>
+          <span class='sw' id='tmSw'></span>
+          <span class='tm-hex' id='tmHex'>#2563EB</span>
+          <button type='button' id='tmApply'>적용</button>
+        </div>
+        <div class='tm-fontsec'>
+          <div class='tm-sec-head'>
+            <span class='tm-sec-title'>폰트</span>
+          </div>
+          <div class='tm-font'>
+            <label for='tmFont'>본문 폰트</label>
+            <select id='tmFont'>
+              <option value='malgun'>맑은 고딕</option>
+              <option value='noto'>Noto Sans KR</option>
+              <option value='nanum'>나눔고딕</option>
+              <option value='batang'>바탕(명조)</option>
+            </select>
+          </div>
+          <div class='tm-size'>
+            <label for='tmSize'>기준 폰트 크기</label>
+            <div class='tm-size-ctl'>
+              <input type='range' id='tmSize' min='11' max='18' step='1' value='14'>
+              <span class='tm-size-val' id='tmSizeVal'>14px</span>
+            </div>
+          </div>
+        </div>
+        <div class='tm-foot'>
+          <div class='tm-foot-head'>
+            <label for='tmHeader'>쪽 머리말(Header)</label>
+            <input type='checkbox' id='tmHeader' class='tm-switch'>
+          </div>
+          <div class='tm-foot-body' id='tmHeaderBody'>
+            <input type='text' id='tmHeaderText' placeholder='예: {title}'>
+            <div class='tm-foot-vars'>사용 가능 변수: {pageNumber} , {totalPages} , {title}</div>
+            <div class='tm-foot-row'>
+              <label for='tmHeaderAlign'>정렬</label>
+              <select id='tmHeaderAlign'>
+                <option value='left'>왼쪽</option>
+                <option value='center'>가운데</option>
+                <option value='right'>오른쪽</option>
+              </select>
+            </div>
+            <label class='tm-foot-border'><input type='checkbox' id='tmHeaderBorder'>구분선 표시</label>
+          </div>
+        </div>
+        <div class='tm-foot'>
+          <div class='tm-foot-head'>
+            <label for='tmFooter'>쪽 바닥글(Footer)</label>
+            <input type='checkbox' id='tmFooter' class='tm-switch'>
+          </div>
+          <div class='tm-foot-body' id='tmFooterBody'>
+            <input type='text' id='tmFooterText' placeholder='예: Page {pageNumber} / {totalPages}'>
+            <div class='tm-foot-vars'>사용 가능 변수: {pageNumber} , {totalPages}</div>
+            <div class='tm-foot-row'>
+              <label for='tmFooterAlign'>정렬</label>
+              <select id='tmFooterAlign'>
+                <option value='left'>왼쪽</option>
+                <option value='center'>가운데</option>
+                <option value='right'>오른쪽</option>
+              </select>
+            </div>
+            <label class='tm-foot-border'><input type='checkbox' id='tmFooterBorder'>구분선 표시</label>
+          </div>
+        </div>
+        <div class='tm-opts'>
+          <div class='tm-opt'>
+            <label for='tmRemember'>선택한 설정 기억하기</label>
+            <input type='checkbox' id='tmRemember' class='tm-switch'>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id='main'>
+      <section class='pane' id='editorPane'>
+        <textarea id='editor' spellcheck='false' placeholder='여기에 Markdown 을 입력하거나 .md 파일을 끌어다 놓으세요'></textarea>
+        <button id='fileBadge' type='button' hidden title='불러온 파일 보기'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 8.5l-9.2 9.2a4 4 0 0 1-5.7-5.7l8.5-8.5a2.5 2.5 0 0 1 3.5 3.5l-8.5 8.5a1 1 0 0 1-1.4-1.4l7.8-7.8'/></svg><span id='fileBadgeN'>0</span><span id='fileBadgeWarn' aria-hidden='true' title='식별 안 된 이미지가 있습니다'>!</span></button>
+        <div id='filePop' hidden></div>
+      </section>
+      <div id='splitter'>
+        <button id='foldBtn' type='button' title='편집창 접기/펼치기' aria-label='편집창 접기/펼치기'><span class='fold-ico'>‹</span></button>
+      </div>
+      <section class='pane' id='previewWrap'>
+        <div class='pv-head' id='pvHead'>Total 0 pages</div>
+        <div id='pages'></div>
+      </section>
+      <div id='drop'>
+        <div class='drop-box'>
+          <svg class='drop-ico' width='44' height='44' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>
+            <path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2'/>
+            <path d='M7 9l5 -5l5 5'/>
+            <path d='M12 4l0 12'/>
+          </svg>
+          <h2>여기에 .md 파일을 끌어다 놓으세요</h2>
+          <div class='sub'>또는 <b>MD 파일 열기</b> 로 선택하세요.</div>
+          <div class='drop-note'>왼쪽에서 편집하고 오른쪽 미리보기로 확인한 뒤 <b>Word로 저장</b> 을 누르면 .docx 로 내려받습니다.</div>
+          <div class='drop-actions'>
+            <button id='btnOpen'>MD 파일 열기</button>
+            <button id='btnBlank' class='ghost'>빈 문서로 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id='src'></div>
+    <script src="js/app.js"></script>
+  </body>
+</html>
