@@ -242,7 +242,7 @@
   function diagramBlock(t, tpl) {
     var Dx = D();
     if (t._png) return [new Dx.Paragraph({ alignment: Dx.AlignmentType.CENTER, spacing: { before: 120, after: 160 }, children: [imageRun(t._png)] })];
-    var note = t._diagUnsupported ? '지원하지 않는 다이어그램 (지원: flowchart · erDiagram · sequenceDiagram)' : '다이어그램 렌더 실패';
+    var note = t._diagUnsupported ? '지원하지 않는 다이어그램 (지원: flowchart · sequence · erDiagram · pie · state · class · gantt · journey · mindmap · timeline)' : '다이어그램 렌더 실패';
     return [new Dx.Paragraph({ spacing: { before: 120, after: 40 }, children: [runText(note, tpl, { italics: true, color: tpl.del.color, size: 20 })] }), codeBlock(t, tpl)];
   }
   function list(t, tpl, ctx, level) {

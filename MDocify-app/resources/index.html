@@ -119,7 +119,7 @@
     </div>
     <div id='main'>
       <section class='pane' id='editorPane'>
-        <textarea id='editor' spellcheck='false' placeholder='여기에 Markdown 을 입력하거나 .md 파일을 끌어다 놓으세요'></textarea>
+        <pre id='raw' aria-hidden='true'></pre><textarea id='editor' spellcheck='false' wrap='soft' placeholder='여기에 Markdown 을 입력하거나 .md 파일을 끌어다 놓으세요'></textarea>
         <button id='fileBadge' type='button' hidden title='불러온 파일 보기'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 8.5l-9.2 9.2a4 4 0 0 1-5.7-5.7l8.5-8.5a2.5 2.5 0 0 1 3.5 3.5l-8.5 8.5a1 1 0 0 1-1.4-1.4l7.8-7.8'/></svg><span id='fileBadgeN'>0</span><span id='fileBadgeWarn' aria-hidden='true' title='식별 안 된 이미지가 있습니다'>!</span></button>
         <div id='filePop' hidden></div>
       </section>
@@ -132,7 +132,7 @@
       </section>
       <div id='drop'>
         <div class='drop-box'>
-          <svg class='drop-ico' width='44' height='44' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>
+          <svg class='drop-ico' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>
             <path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2'/>
             <path d='M7 9l5 -5l5 5'/>
             <path d='M12 4l0 12'/>

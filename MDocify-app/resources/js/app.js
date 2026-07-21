@@ -11,6 +11,24 @@
   /* ---------- 공통 유틸 ---------- */
   function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 
+  /* ---------- 편집기 구문 강조 미러(MDeautify 이식) ---------- */
+  function hlMd(t){var e=esc(t);
+  /* 각 줄을 .ln[data-ln] 로 감싸 스크롤 동기화(방식 B)에서 줄별 Y좌표를 측정 가능하게 함.
+     인라인 span이라 오버레이(투명 textarea) 정합에는 영향 없음. */
+  return e.split("\n").map(function(line,i){var l=line;
+  if(/^\s{0,3}#{1,6}\s/.test(line))l='<span class="mh">'+l+'</span>';
+  else if(/^\s{0,3}&gt;/.test(l))l='<span class="mq">'+l+'</span>';
+  else{
+  l=l.replace(/^(\s*)([-*+]|\d+\.)(\s)/,'$1<span class="ml">$2</span>$3');
+  l=l.replace(/(`[^`]+`)/g,'<span class="mc">$1</span>');
+  l=l.replace(/(\*\*[^*]+\*\*)/g,'<span class="mb">$1</span>');
+  l=l.replace(/(\[[^\]]+\]\([^)]+\))/g,'<span class="mlk">$1</span>');
+  }
+  return '<span class="ln" data-ln="'+i+'">'+(l||'​')+'</span>';}).join("\n");}
+  /* 미러 동기화: textarea 값이 바뀌는 모든 지점에서 호출(직접 .value= 는 input 이벤트를 안 쏘므로 필수). 전역 노출로 이식된 IIFE도 사용. */
+  function syncMirror(){var r=$('raw'),ta=$('editor');if(r&&ta){r.innerHTML=hlMd(ta.value);}}
+  window.__syncMirror=syncMirror;
+
   function fixLooseLists(t){
     var lines=t.split("\n"),out=[];var isItem=function(s){return /^\s*([-*+]|\d+\.)\s+/.test(s);};
     for(var i=0;i<lines.length;i++){if(isItem(lines[i])){var p=out.length?out[out.length-1]:"";if(p.trim()&&!isItem(p))out.push("");}out.push(lines[i]);}
@@ -95,7 +113,7 @@
     src.innerHTML=buildCover(meta)+"<div class='content'>"+window.marked.parse(srcmd)+"</div>";
     src.querySelectorAll(".content a[href]").forEach(function(a){a.setAttribute("target","_blank");a.setAttribute("rel","noopener noreferrer");});
     src.querySelectorAll(".content h1, .content h2, .content h3").forEach(function(h){var m=h.innerHTML.match(/^([A-Z])[.)·]?\s+([\s\S]*)$/);if(m)h.innerHTML="<span class='sn'>"+m[1]+"</span>"+m[2];});
-    src.querySelectorAll("code.language-mermaid").forEach(function(c){var pre=c.closest("pre")||c;var kind=window.DIAG?window.DIAG.detectKind(c.textContent):null;var fig=document.createElement("figure");if(kind){fig.innerHTML=window.DIAG.render(kind,c.textContent);}else{var box=document.createElement("div");box.className="diag-unsupported";var ti=document.createElement("div");ti.className="du-title";ti.textContent="지원하지 않는 다이어그램 (지원: flowchart · erDiagram · sequenceDiagram)";box.appendChild(ti);fig.appendChild(box);}pre.replaceWith(fig);});
+    src.querySelectorAll("code.language-mermaid").forEach(function(c){var pre=c.closest("pre")||c;var kind=window.DIAG?window.DIAG.detectKind(c.textContent):null;var fig=document.createElement("figure");if(kind){fig.innerHTML=window.DIAG.render(kind,c.textContent);}else{var box=document.createElement("div");box.className="diag-unsupported";var ti=document.createElement("div");ti.className="du-title";ti.textContent="지원하지 않는 다이어그램 (지원: flowchart · sequence · erDiagram · pie · state · class · gantt · journey · mindmap · timeline)";box.appendChild(ti);fig.appendChild(box);}pre.replaceWith(fig);});
     src.querySelectorAll("pre code[class*='language-']").forEach(function(c){var mm=(c.className||"").match(/language-([\w#+.-]+)/);c.innerHTML=hlCode(c.textContent,mm?mm[1]:"");});
     return src;
   }
@@ -141,11 +159,11 @@
     setHead("페이지 분할 중...");
     runPaged(src, keepScroll);
   }
-  function onEdit(){clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){renderPreview($('editor').value,true);},350);}
+  function onEdit(){syncMirror();clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){renderPreview($('editor').value,true);},350);}
 
   /* 이식된(별도 IIFE) 뱃지/드롭/ZIP 코드가 호출하는 브리지: 미리보기 재생성 + 편집기 텍스트 교체 */
   window.__render=function(text, keepScroll){ renderPreview(text, keepScroll); };
-  window.__setEditorText=function(text){ $('editor').value=text; if(window.__fname)curName=window.__fname; document.body.classList.add('loaded'); $('editor').scrollTop=0; renderPreview(text,false); };
+  window.__setEditorText=function(text){ $('editor').value=text; if(window.__fname)curName=window.__fname; document.body.classList.add('loaded'); $('editor').scrollTop=0; syncMirror(); renderPreview(text,false); };
 
   /* ---------- 파일 로드 / 빈 문서 ---------- */
   function loadFile(file){
@@ -157,6 +175,7 @@
       window.__mdName=file.name;window.__fname=curName;
       document.body.classList.add('loaded');
       $('editor').scrollTop=0;
+      syncMirror();
       renderPreview(e.target.result,false);
     };
     r.readAsText(file,'utf-8');
@@ -165,6 +184,7 @@
     $('editor').value='';curName='document';
     window.__mdName=null;window.__fname='document';
     document.body.classList.add('loaded');
+    syncMirror();
     renderPreview('',false);
     $('editor').focus();
   }
@@ -201,15 +221,23 @@
   /* ---------- 초기화 ---------- */
   function init(){
     $('editor').addEventListener('input',onEdit);
+    $('editor').addEventListener('scroll',function(){var r=$('raw');if(r){r.scrollTop=$('editor').scrollTop;r.scrollLeft=$('editor').scrollLeft;}});
     $('fileInput').addEventListener('change',function(e){if(e.target.files[0])loadFile(e.target.files[0]);e.target.value='';});
     var top=$('btnOpenTop');if(top)top.addEventListener('click',function(){$('fileInput').click();});
     var open=$('btnOpen');if(open)open.addEventListener('click',function(){$('fileInput').click();});
     var blank=$('btnBlank');if(blank)blank.addEventListener('click',startBlank);
     $('btnSave').addEventListener('click',saveDocx);
     var sel=$('tplSelect');if(sel)sel.addEventListener('change',function(){curTemplate=sel.value;});
-    var dark=$('darkToggle');if(dark)dark.addEventListener('change',function(){document.body.classList.toggle('dark',dark.checked);});
+    /* 라이트/다크 셸 테마: 선택 상태를 localStorage에 저장하고 시작 시 복원.
+       다크는 '설정 기억' 체크와 무관하게 항상 독립 저장(MDeautify와 동일). 기본=라이트. */
+    var dark=$('darkToggle');
+    (function(){var KEY="mdocify_ui_mode",saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+      var isDark=saved==="dark";document.body.classList.toggle('dark',isDark);if(dark)dark.checked=isDark;
+      if(dark)dark.addEventListener('change',function(){var mode=dark.checked?"dark":"light";document.body.classList.toggle('dark',dark.checked);try{localStorage.setItem(KEY,mode);}catch(e){}});
+    })();
     /* 드롭 처리(.md + 이미지 + 커서 삽입)는 아래 이식된 IIFE가 담당. 여기서는 문서 단독 드롭 핸들러를 두지 않음(중복 방지). */
     initSplitter();
+    syncMirror();  /* 초기 내용(있으면)에 미러 맞춤 */
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
@@ -310,6 +338,7 @@ window.__resolveLocalImages=async function(src){
         var block=(before&&!/\n$/.test(before)?"\n":"")+refs+(after&&!/^\n/.test(after)?"\n":"");
         var nt=before+block+after;ta.value=nt;
         try{ta.selectionStart=ta.selectionEnd=(before+block).length;}catch(e){}
+        if(window.__syncMirror)window.__syncMirror();
         window.__render(nt,true);
       }else{
         window.__render(ta?ta.value:(window.__lastText||""),true);
@@ -399,6 +428,7 @@ window.__resolveLocalImages=async function(src){
     if(!changed)return;
     out=out.replace(/\n{3,}/g,"\n\n");  /* 참조만 있던 줄이 비면서 생긴 과한 빈 줄 정리 */
     ta.value=out;
+    if(window.__syncMirror)window.__syncMirror();
     if(typeof window.__render==="function")window.__render(out,true);
   }
   var badge=document.getElementById("fileBadge"),num=document.getElementById("fileBadgeN"),pop=document.getElementById("filePop");
@@ -516,7 +546,7 @@ window.__resolveLocalImages=async function(src){
     if(fontSel)fontSel.value=state.font;
     if(sizeInp)sizeInp.value=state.sizePx;if(sizeVal)sizeVal.textContent=state.sizePx+"px";
     if(rememberInp)rememberInp.checked=remember;mark();}
-  function openModal(){syncControls();modal.hidden=false;var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));modal.style.top=(r.bottom+6)+"px";modal.style.left=left+"px";}
+  function openModal(){syncControls();modal.hidden=false;var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));var top=r.bottom+6;modal.style.top=top+"px";modal.style.left=left+"px";if(card){card.style.maxHeight=(window.innerHeight-top-12)+"px";}}
   function closeModal(){modal.hidden=true;}
   trigger.addEventListener("click",function(e){e.stopPropagation();modal.hidden?openModal():closeModal();});
   document.addEventListener("click",function(e){if(!modal.hidden&&!modal.contains(e.target)&&e.target!==trigger&&!trigger.contains(e.target))closeModal();});
