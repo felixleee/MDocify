@@ -14,6 +14,18 @@
     <script src="js/md2docx.js"></script>
   </head>
   <body>
+    <div id='bootSplash' class='boot-splash' aria-hidden='true'>
+      <div class='boot-inner'>
+        <svg class='boot-logo' width='60' height='60' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'>
+          <rect x='1' y='1' width='46' height='46' rx='12' fill='#2563eb'/>
+          <path d='M10 33 V18 L20 28 L30 18 V33' fill='none' stroke='#fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/>
+          <path d='M36.5 8 C36.5 12.8 38.7 15 43.5 15 C38.7 15 36.5 17.2 36.5 22 C36.5 17.2 34.3 15 29.5 15 C34.3 15 36.5 12.8 36.5 8 Z' fill='#fff'/>
+        </svg>
+        <div class='boot-word'><span class='boot-hi'>MD</span><span class='boot-rest'>ocify</span></div>
+        <div class='boot-tag'>Markdown → Word</div>
+        <div class='boot-bar'><i></i></div>
+      </div>
+    </div>
     <div id='bar'>
       <span class='brand'>
         <svg class='brand-mark' width='30' height='30' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'>
@@ -24,6 +36,7 @@
         </svg>
         <span class='brand-lock'><span class='brand-title'><span class='m-hi'>MD</span><span class='m-rest'>ocify</span><span class='season'>md2docx</span></span></span>
       </span>
+      <button id='btnExplorer' title='폴더 탐색기 (Ctrl+B)' hidden>탐색기</button>
       <button id='btnOpenTop' title='다른 MD 파일 열기'>MD 파일 열기</button>
       <label class='mode-sw' title='템플릿'>템플릿
         <select id='tplSelect'>
@@ -32,6 +45,7 @@
       </label>
       <span class='spacer'></span>
       <button id='btnDocSettings' title='문서 설정 (색·폰트·크기)'>문서 설정</button>
+      <button id='btnAI' title='AI 작성 도우미 (Ctrl+Shift+A)'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z'/></svg><span class='ai-lbl'>AI 도우미</span></button>
       <label class='mode-sw' title='다크 모드'>다크<input type='checkbox' id='darkToggle'></label>
       <button id='btnSave' title='현재 내용을 .docx 로 저장'>Word로 저장 (.docx)</button>
       <input id='fileInput' type='file' accept='.md,.markdown,.txt' style='display:none'>
@@ -118,10 +132,29 @@
       </div>
     </div>
     <div id='main'>
+      <aside id='explorer' hidden aria-label='폴더 탐색기'>
+        <div class='ex-head'>
+          <span class='ex-title'>탐색기</span>
+          <span class='ex-spacer'></span>
+          <button id='exRefresh' class='ex-ico' type='button' title='새로고침' aria-label='새로고침'><svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 12a9 9 0 1 1-2.64-6.36'/><path d='M21 3v6h-6'/></svg></button>
+          <button id='exAdd' class='ex-ico' type='button' title='폴더 추가' aria-label='폴더 추가'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/><line x1='12' y1='11' x2='12' y2='17'/><line x1='9' y1='14' x2='15' y2='14'/></svg></button>
+        </div>
+        <div class='ex-body'>
+          <div id='exTree' class='ex-tree'></div>
+          <div id='exEmpty' class='ex-empty' hidden>
+            <div class='ex-empty-txt'>작업 폴더가 아직 없어요.<br>폴더를 추가하면 여기에서 문서를 열 수 있어요.</div>
+            <button id='exAddEmpty' class='ex-empty-btn' type='button'>폴더 추가</button>
+          </div>
+        </div>
+      </aside>
+      <div id='exResizer' title='탐색기 너비 조절' aria-hidden='true'></div>
       <section class='pane' id='editorPane'>
-        <pre id='raw' aria-hidden='true'></pre><textarea id='editor' spellcheck='false' wrap='soft' placeholder='여기에 Markdown 을 입력하거나 .md 파일을 끌어다 놓으세요'></textarea>
-        <button id='fileBadge' type='button' hidden title='불러온 파일 보기'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 8.5l-9.2 9.2a4 4 0 0 1-5.7-5.7l8.5-8.5a2.5 2.5 0 0 1 3.5 3.5l-8.5 8.5a1 1 0 0 1-1.4-1.4l7.8-7.8'/></svg><span id='fileBadgeN'>0</span><span id='fileBadgeWarn' aria-hidden='true' title='식별 안 된 이미지가 있습니다'>!</span></button>
-        <div id='filePop' hidden></div>
+        <div id='tabBar' hidden role='tablist' aria-label='열린 문서'></div>
+        <div id='editorBody'>
+          <pre id='raw' aria-hidden='true'></pre><textarea id='editor' spellcheck='false' wrap='soft' placeholder='여기에 Markdown 을 입력하거나 .md 파일을 끌어다 놓으세요'></textarea>
+          <button id='fileBadge' type='button' hidden title='불러온 파일 보기'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M21 8.5l-9.2 9.2a4 4 0 0 1-5.7-5.7l8.5-8.5a2.5 2.5 0 0 1 3.5 3.5l-8.5 8.5a1 1 0 0 1-1.4-1.4l7.8-7.8'/></svg><span id='fileBadgeN'>0</span><span id='fileBadgeWarn' aria-hidden='true' title='식별 안 된 이미지가 있습니다'>!</span></button>
+          <div id='filePop' hidden></div>
+        </div>
       </section>
       <div id='splitter'>
         <button id='foldBtn' type='button' title='편집창 접기/펼치기' aria-label='편집창 접기/펼치기'><span class='fold-ico'>‹</span></button>
@@ -130,6 +163,71 @@
         <div class='pv-head' id='pvHead'>Total 0 pages</div>
         <div id='pages'></div>
       </section>
+        <div id='aiResizer' title='AI 패널 너비 조절' aria-hidden='true' hidden></div>
+        <aside id='aiPanel' hidden aria-label='AI 작성 도우미'>
+          <div class='ai-head'>
+            <span class='ai-title'>AI 작성 도우미</span>
+            <span class='ai-spacer'></span>
+            <select id='aiModel' class='ai-model' title='모델'></select>
+            <button id='aiClear' class='ai-ico' type='button' title='대화 지우기' aria-label='대화 지우기'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 6h18'/><path d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/><path d='M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6'/></svg></button>
+            <button id='aiClose' class='ai-ico' type='button' title='닫기' aria-label='닫기'>✕</button>
+          </div>
+          <div id='aiMockHint' class='ai-mockhint' hidden>개발(브라우저) 모드 — 모의 응답입니다. 실제 호출은 설치형(EXE)에서 Claude Code CLI로 동작합니다.</div>
+          <div id='aiSetup' class='ai-setup' hidden>
+            <div class='ai-setup-title' id='aiSetupTitle'>AI 도우미 준비하기</div>
+            <div class='ai-setup-txt' id='aiSetupTxt'>이 기능은 <b>Claude Code</b>를 사용합니다(별도 API 키 불필요). 아래 <b>자동 설치</b> 버튼을 누르면 <b>npm·Node 없이</b> 공식 프로그램을 바로 설치해요. 설치 후 Claude 계정으로 1회 로그인만 하면 됩니다.</div>
+            <div class='ai-setup-btns'>
+              <button id='aiInstall' type='button'>자동 설치</button>
+              <button id='aiLogin' type='button' hidden>로그인 창 열기</button>
+              <button id='aiStartChat' type='button' class='ghost' hidden>채팅 시작</button>
+              <button id='aiRecheck' type='button' class='ghost'>다시 확인</button>
+            </div>
+            <pre id='aiInstallLog' class='ai-setup-log' hidden></pre>
+            <details class='ai-setup-manual'>
+              <summary>직접 설치할래요</summary>
+              <div class='ai-setup-txt'>PowerShell에서 아래를 실행하거나(권장), Node가 있으면 <code>npm install -g @anthropic-ai/claude-code</code> 도 됩니다.</div>
+              <div class='ai-setup-cmd'><code>irm https://claude.ai/install.ps1 | iex</code></div>
+              <button id='aiSetupOpen' type='button' class='ghost'>공식 설치 안내 열기</button>
+            </details>
+          </div>
+          <div id='aiLog' class='ai-log'></div>
+          <div class='ai-input-wrap'>
+            <div id='aiUsagePop' class='ai-usagepop' hidden>
+              <div class='up-item'>
+                <div class='up-row'><span class='up-lab'>컨텍스트 윈도우</span><span class='up-val' id='upCtxVal'>–</span></div>
+                <div class='up-track'><div class='up-fill' id='upCtxFill'></div></div>
+              </div>
+              <div class='up-head'>사용 한도</div>
+              <div class='up-item'>
+                <div class='up-row'><span class='up-lab'>5시간 한도</span><span class='up-val' id='up5Val'>–</span></div>
+                <div class='up-track'><div class='up-fill' id='up5Fill'></div></div>
+                <div class='up-reset' id='up5Reset'></div>
+              </div>
+              <div class='up-item'>
+                <div class='up-row'><span class='up-lab'>주간 한도</span><span class='up-val' id='upWVal'>–</span></div>
+                <div class='up-track'><div class='up-fill' id='upWFill'></div></div>
+                <div class='up-reset' id='upWReset'></div>
+              </div>
+            </div>
+            <div class='ai-optrow'>
+              <label class='ai-ctx'><input type='checkbox' id='aiCtx' checked> 현재 문서 포함</label>
+              <label class='ai-effort-wrap' title='추론 강도(effort) — 높을수록 더 깊게 생각하지만 느려집니다'>Effort <select id='aiEffort' class='ai-effort'></select></label>
+            </div>
+            <div class='ai-input-row'>
+              <textarea id='aiInput' rows='2' placeholder='요청을 입력하세요. 예: 이 문서를 표로 정리해줘 (Enter 전송 · Shift+Enter 줄바꿈)' spellcheck='false'></textarea>
+              <div class='ai-input-actions'>
+                <button id='aiSend' type='button' title='전송'>전송</button>
+                <button id='aiStop' type='button' title='중단' hidden>중단</button>
+              </div>
+            </div>
+            <div id='aiCtxBar' class='ai-ctxbar' hidden title='이 대화가 사용 중인 컨텍스트 창(모델 실제 한도 기준)'>
+              <span id='aiCtxLabel' class='ai-ctxbar-label'>컨텍스트</span>
+              <div class='ai-ctxbar-track'><div id='aiCtxFill' class='ai-ctxbar-fill'></div></div>
+              <span id='aiCtxPct' class='ai-ctxbar-pct'>0%</span>
+            </div>
+            <div class='ai-cred' title='이 기능은 Anthropic의 Claude Code로 동작합니다'>Powered by <b>Claude</b> · Claude Code 기반</div>
+          </div>
+        </aside>
       <div id='drop'>
         <div class='drop-box'>
           <svg class='drop-ico' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>
@@ -148,6 +246,13 @@
       </div>
     </div>
     <div id='src'></div>
+    <script src="js/neutralino.js"></script>
+    <script src="js/settings-store.js"></script>
+    <script src="js/modal.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/explorer.js"></script>
+    <script src="js/ai/ai-providers/cli.js"></script>
+    <script src="js/ai/ai-chat.js"></script>
   </body>
 </html>

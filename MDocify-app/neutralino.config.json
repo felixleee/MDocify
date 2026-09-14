@@ -17,25 +17,29 @@
   "nativeAllowList": [
     "app.*",
     "os.*",
+    "window.*",
+    "filesystem.*",
+    "events.*",
     "debug.log"
   ],
   "modes": {
     "window": {
       "title": "MDocify",
-      "width": 1280,
-      "height": 840,
-      "minWidth": 900,
-      "minHeight": 560,
+      "width": 330,
+      "height": 450,
+      "minWidth": 300,
+      "minHeight": 200,
+      "useSavedState": false,
       "center": true,
       "fullScreen": false,
       "alwaysOnTop": false,
       "icon": "/resources/icons/appIcon.png",
       "enableInspector": false,
-      "borderless": false,
-      "maximize": true,
+      "borderless": true,
+      "maximize": false,
       "hidden": false,
       "resizable": true,
-      "exitProcessOnClose": true
+      "exitProcessOnClose": false
     }
   },
   "cli": {

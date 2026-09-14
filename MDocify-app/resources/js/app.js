@@ -47,7 +47,7 @@
     return "<div class='cover'>"+(kicker?"<div class='kicker'>"+esc(kicker)+"</div>":"")+"<h1>"+esc(title)+"</h1><div class='st'>"+esc(subtitle)+"</div><div class='bar'></div>"+(rows?"<table>"+rows+"</table>":"")+"</div>";
   }
 
-  var PAGED_CSS="@page{size:A4;margin:18mm 15mm;@top-center{content:' ';font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:9pt;color:#94a3b8;}@bottom-center{content:counter(page);font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:9pt;color:#94a3b8;}}.content h1,.content h2,.content h3,.content h4{break-after:avoid-page;-webkit-column-break-after:avoid;}.content tr,.content img,.content svg,.content figure,.content pre,.content blockquote{break-inside:avoid;}.content table,.content ul,.content ol{break-inside:auto;}.content thead{break-after:avoid;}.pb-before{break-before:page;}.cover{break-after:page;}.content p,.content li{orphans:2;widows:2;}";
+  var PAGED_CSS="@page{size:A4;margin:18mm 15mm;@top-center{content:' ';font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:9pt;color:#94a3b8;}@bottom-center{content:counter(page);font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:9pt;color:#94a3b8;}}.content h1,.content h2,.content h3,.content h4{break-after:avoid-page;-webkit-column-break-after:avoid;}.content tr,.content img,.content svg,.content figure,.content blockquote{break-inside:avoid;}.content table,.content ul,.content ol,.content pre{break-inside:auto;}.content thead{break-after:avoid;}.pb-before{break-before:page;}.cover{break-after:page;}.content p,.content li{orphans:2;widows:2;}";
 
   /* ---------- 경량 코드 구문 강조 (VSCode Dark 계열, MDeautify와 동일) ---------- */
   function hlCode(src, lang){
@@ -115,6 +115,8 @@
     src.querySelectorAll(".content h1, .content h2, .content h3").forEach(function(h){var m=h.innerHTML.match(/^([A-Z])[.)·]?\s+([\s\S]*)$/);if(m)h.innerHTML="<span class='sn'>"+m[1]+"</span>"+m[2];});
     src.querySelectorAll("code.language-mermaid").forEach(function(c){var pre=c.closest("pre")||c;var kind=window.DIAG?window.DIAG.detectKind(c.textContent):null;var fig=document.createElement("figure");if(kind){fig.innerHTML=window.DIAG.render(kind,c.textContent);}else{var box=document.createElement("div");box.className="diag-unsupported";var ti=document.createElement("div");ti.className="du-title";ti.textContent="지원하지 않는 다이어그램 (지원: flowchart · sequence · erDiagram · pie · state · class · gantt · journey · mindmap · timeline)";box.appendChild(ti);fig.appendChild(box);}pre.replaceWith(fig);});
     src.querySelectorAll("pre code[class*='language-']").forEach(function(c){var mm=(c.className||"").match(/language-([\w#+.-]+)/);c.innerHTML=hlCode(c.textContent,mm?mm[1]:"");});
+    /* 코드블록의 각 줄을 블록 요소(.cl)로 감싼다 → Paged.js 가 페이지 경계에서 줄 단위로 분할(강조 span 든 긴 코드블록이 한 페이지에 갇혀 잘리는 것 방지). 강조 span 은 줄바꿈을 넘지 않으므로 \n 분할이 안전. MDeautify 이식(A1). */
+    src.querySelectorAll(".content pre > code").forEach(function(c){var h=c.innerHTML.replace(/\n$/,"");c.innerHTML=h.split("\n").map(function(ln){return "<span class='cl'>"+(ln===""?"​":ln)+"</span>";}).join("");});
     return src;
   }
 
@@ -129,70 +131,96 @@
       if(last){if(last.colg&&!colg){t.insertBefore(last.colg.cloneNode(true),t.firstChild);}var tb=t.querySelector(":scope > tbody");var h=last.thead.cloneNode(true);if(tb){t.insertBefore(h,tb);}else{t.appendChild(h);}}
     });
   }
-  function runPaged(src,keepScroll){
+  function runPaged(src,keepScroll,attempt){
+    attempt=attempt||0;
+    var myGen=(window.__pgGen=(window.__pgGen||0)+1);   /* 이 조판의 세대 번호. 더 새 조판이 시작되면 이 결과는 폐기(탭 전환·연속 편집 경쟁 방지). MDeautify 이식(A2). */
     var pages=$('pages'),viewer=pages;
     var vMax=viewer.scrollHeight-viewer.clientHeight;
     var ratio=(keepScroll&&vMax>0)?viewer.scrollTop/vMax:0;
     function restore(){var m=viewer.scrollHeight-viewer.clientHeight;viewer.scrollTop=keepScroll?ratio*m:0;}
-    pages.innerHTML="";
-    if(!window.PagedModule||!window.PagedModule.Previewer){fallbackRender(src);restore();return;}
+    if(!window.PagedModule||!window.PagedModule.Previewer){pages.innerHTML="";fallbackRender(src);restore();return;}
     var blobUrl=null;try{blobUrl=URL.createObjectURL(new Blob([PAGED_CSS],{type:"text/css"}));}catch(e){}
+    /* 새 조판은 화면 밖 임시 컨테이너에서 완료한 뒤 한 번에 교체 → 동시 조판이 같은 #pages 에 섞이는 경쟁 제거 + '비었다 다시 채워지는' 깜빡임 방지. */
+    var staging=document.createElement("div");
+    staging.style.cssText="position:absolute;left:-99999px;top:0;width:"+(pages.clientWidth||viewer.clientWidth||800)+"px;";
+    document.body.appendChild(staging);
+    function dropStaging(){if(staging&&staging.parentNode)staging.parentNode.removeChild(staging);staging=null;}
+    function swapIn(){pages.innerHTML="";while(staging.firstChild)pages.appendChild(staging.firstChild);dropStaging();}
+    function fail(err){if(blobUrl){try{URL.revokeObjectURL(blobUrl);}catch(e){}}if(myGen!==window.__pgGen){dropStaging();return;}if(err)console.error(err);dropStaging();pages.innerHTML="";fallbackRender(src);restore();}
     try{
       var prev=new window.PagedModule.Previewer();
-      prev.preview("<style>"+PAGED_CSS+"</style>"+src.innerHTML, blobUrl?[blobUrl]:[], pages).then(function(flow){
+      prev.preview("<style>"+PAGED_CSS+"</style>"+src.innerHTML, blobUrl?[blobUrl]:[], staging).then(function(flow){
         if(blobUrl){try{URL.revokeObjectURL(blobUrl);}catch(e){}}
+        if(myGen!==window.__pgGen){dropStaging();return;}   /* 더 새 조판이 시작됨 → 이 결과 폐기 */
+        /* 조판 검증: 한 페이지 내용이 한 단을 넘어 다단으로 흘러넘쳤으면(=분할 미완결/경쟁으로 깨짐) 한 박자 쉬고 재조판. 정상 페이지는 scrollWidth==clientWidth. */
+        var bad=false,pcs=staging.querySelectorAll(".pagedjs_page_content");
+        for(var bi=0;bi<pcs.length;bi++){if(pcs[bi].scrollWidth>pcs[bi].clientWidth+4){bad=true;break;}}
+        if(bad&&attempt<2){dropStaging();setTimeout(function(){if(myGen===window.__pgGen)runPaged(src,keepScroll,attempt+1);},50);return;}
+        swapIn();
         repeatTableHeaders(pages);
         if(typeof window.applyFooter==="function")window.applyFooter();
         if(typeof window.applyHeader==="function")window.applyHeader();
         var n=pages.querySelectorAll(".pagedjs_page").length||((flow&&flow.total)||0);
         setHead("Total "+n+" page"+(n>1?"s":""));
         restore();
-      }).catch(function(err){console.error(err);if(blobUrl){try{URL.revokeObjectURL(blobUrl);}catch(e){}}fallbackRender(src);restore();});
-    }catch(e){console.error(e);fallbackRender(src);restore();}
+      }).catch(fail);
+    }catch(e){fail(e);}
   }
 
   var debounceTimer=null;
   async function renderPreview(text, keepScroll){
     var src=buildSource(text);
     if(typeof window.__resolveLocalImages==="function"){try{await window.__resolveLocalImages(src);}catch(e){}}
-    document.body.classList.add('loaded');
+    document.body.classList.add('loaded');if(window.__relayoutPanes)window.__relayoutPanes();
     setHead("페이지 분할 중...");
     runPaged(src, keepScroll);
   }
-  function onEdit(){syncMirror();clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){renderPreview($('editor').value,true);},350);}
+  function onEdit(){syncMirror();if(window.__tabsOnEdit)window.__tabsOnEdit();clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){renderPreview($('editor').value,true);if(window.__autoSave&&window.__autoSaveMd)window.__autoSaveMd();},350);}
 
   /* 이식된(별도 IIFE) 뱃지/드롭/ZIP 코드가 호출하는 브리지: 미리보기 재생성 + 편집기 텍스트 교체 */
   window.__render=function(text, keepScroll){ renderPreview(text, keepScroll); };
-  window.__setEditorText=function(text){ $('editor').value=text; if(window.__fname)curName=window.__fname; document.body.classList.add('loaded'); $('editor').scrollTop=0; syncMirror(); renderPreview(text,false); };
+  window.__setEditorText=function(text){ $('editor').value=text; if(window.__fname)curName=window.__fname; document.body.classList.add('loaded');if(window.__relayoutPanes)window.__relayoutPanes(); $('editor').scrollTop=0; syncMirror(); renderPreview(text,false); if(window.__markClean)window.__markClean(); };
 
   /* ---------- 파일 로드 / 빈 문서 ---------- */
-  function loadFile(file){
+  async function loadFile(file){
     if(!file)return;
+    var fname=(file.name||'document').replace(/\.(md|markdown|txt)$/i,'');
     var r=new FileReader();
+    if(window.__openDoc){   /* 탭(C): 새 탭으로 열기(교체 아님) */
+      r.onload=function(e){window.__openDoc({path:null,dir:null,name:file.name||'document',fname:fname,text:e.target.result,drop:{}});};
+      r.readAsText(file,'utf-8');return;
+    }
+    if(window.__confirmReplaceDoc&&!(await window.__confirmReplaceDoc()))return;   /* 폴백(탭 없음): 저장 안 된 변경 보호(B) */
     r.onload=function(e){
       $('editor').value=e.target.result;
-      curName=(file.name||'document').replace(/\.(md|markdown|txt)$/i,'');
-      window.__mdName=file.name;window.__fname=curName;
-      document.body.classList.add('loaded');
+      curName=fname;
+      window.__mdName=file.name;window.__fname=fname;
+      window.__mdPath=null;window.__mdDir=null;   /* 브라우저 FileReader 열기 = 경로 없음 */
+      document.body.classList.add('loaded');if(window.__relayoutPanes)window.__relayoutPanes();
       $('editor').scrollTop=0;
       syncMirror();
       renderPreview(e.target.result,false);
+      if(window.__markClean)window.__markClean();
     };
     r.readAsText(file,'utf-8');
   }
-  function startBlank(){
+  async function startBlank(){
+    if(window.__openDoc){window.__openDoc({path:null,dir:null,name:'document',fname:'document',text:'',drop:{}});$('editor').focus();return;}   /* 탭(C): 새 빈 탭 */
+    if(window.__confirmReplaceDoc&&!(await window.__confirmReplaceDoc()))return;   /* 폴백: 저장 안 된 변경 보호(B) */
     $('editor').value='';curName='document';
     window.__mdName=null;window.__fname='document';
-    document.body.classList.add('loaded');
+    window.__mdPath=null;window.__mdDir=null;
+    document.body.classList.add('loaded');if(window.__relayoutPanes)window.__relayoutPanes();
     syncMirror();
     renderPreview('',false);
+    if(window.__markClean)window.__markClean();
     $('editor').focus();
   }
 
   /* ---------- .docx 저장 ---------- */
   function saveDocx(){
     var md=$('editor').value||'';
-    if(!md.trim()){alert('내용이 없습니다. 먼저 MD를 입력하거나 파일을 여세요.');return;}
+    if(!md.trim()){if(window.__appAlert)window.__appAlert('내용이 없습니다. 먼저 MD를 입력하거나 파일을 여세요.','안내');else alert('내용이 없습니다. 먼저 MD를 입력하거나 파일을 여세요.');return;}
     var tpl=TEMPLATES[curTemplate]||window.TPL_CLEAN;
     setBusy(true);
     window.MD2DOCX.convert(md,tpl,window.__docSettings).then(function(blob){
@@ -200,7 +228,7 @@
       var a=document.createElement('a');a.href=url;a.download=curName+'.docx';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(function(){URL.revokeObjectURL(url);},1000);
-    }).catch(function(err){console.error(err);alert('변환 실패: '+(err&&err.message?err.message:err));}).finally(function(){setBusy(false);});
+    }).catch(function(err){console.error(err);var m='변환 실패: '+(err&&err.message?err.message:err);if(window.__appAlert)window.__appAlert(m,'오류');else alert(m);}).finally(function(){setBusy(false);});
   }
   function setBusy(b){var el=$('btnSave');if(el)el.disabled=b;document.body.classList.toggle('busy',b);}
 
@@ -208,13 +236,36 @@
   function initSplitter(){
     var main=$('main'),pane=$('editorPane'),sp=$('splitter'),fb=$('foldBtn');
     if(!main||!pane||!sp||!fb)return;
-    var ico=fb.querySelector('.fold-ico'),lastBasis='46%',dragging=false;
+    var viewer=$('previewWrap');var ico=fb.querySelector('.fold-ico'),lastBasis='50%',dragging=false,ratio=.5;
     function setIco(){ico.textContent=document.body.classList.contains('editor-collapsed')?'›':'‹';}
     fb.addEventListener('mousedown',function(e){e.stopPropagation();});
-    fb.addEventListener('click',function(e){e.stopPropagation();var c=document.body.classList.toggle('editor-collapsed');if(!c)pane.style.flex='0 0 '+lastBasis;setIco();});
+    fb.addEventListener('click',function(e){e.stopPropagation();var c=document.body.classList.toggle('editor-collapsed');if(!c){pane.style.flex='0 0 '+lastBasis;relayout();}setIco();});
     sp.addEventListener('mousedown',function(e){if(e.target===fb||fb.contains(e.target))return;dragging=true;document.body.style.userSelect='none';document.body.style.cursor='col-resize';if(document.body.classList.contains('editor-collapsed')){document.body.classList.remove('editor-collapsed');setIco();}e.preventDefault();});
-    window.addEventListener('mousemove',function(e){if(!dragging)return;var r=main.getBoundingClientRect();var w=e.clientX-r.left;w=Math.max(220,Math.min(r.width-260,w));pane.style.flex='0 0 '+w+'px';lastBasis=w+'px';});
+    window.addEventListener('mousemove',function(e){if(!dragging)return;var pr=pane.getBoundingClientRect(),a=avail();var w=e.clientX-pr.left;/* 편집 패널의 실제 왼쪽 기준 — 탐색기 폭 오프셋 반영 */var maxW=a-260;if(maxW<220)maxW=220;w=Math.max(220,Math.min(maxW,w));pane.style.flex='0 0 '+w+'px';lastBasis=w+'px';if(a>0)ratio=w/a;});
     window.addEventListener('mouseup',function(){if(dragging){dragging=false;document.body.style.userSelect='';document.body.style.cursor='';}});
+    /* 편집/미리보기 폭 재계산 — 탐색기 등 사이드 패널을 뺀 구간을 비율(기본 반반)로 나눈다.
+       비율은 스플리터를 끌면 갱신되고, 패널을 여닫거나 창이 바뀌어도 그 비율을 유지한다. */
+    function avail(){
+      var t=main.clientWidth,cs=main.children;
+      for(var i=0;i<cs.length;i++){
+        var c=cs[i];if(c===pane||c===viewer)continue;
+        var ps=getComputedStyle(c).position;if(ps==='absolute'||ps==='fixed')continue;   /* #drop 같은 오버레이는 폭을 차지하지 않음 */
+        t-=c.getBoundingClientRect().width;
+      }
+      return t;
+    }
+    function relayout(){
+      if(!viewer||dragging||document.body.classList.contains('editor-collapsed'))return;
+      if(!pane.offsetWidth&&!viewer.offsetWidth)return;
+      var a=avail();if(!(a>0))return;
+      var maxW=a-260;if(maxW<220)maxW=220;
+      var w=Math.max(220,Math.min(maxW,Math.round(a*ratio)));
+      if(Math.abs(pane.getBoundingClientRect().width-w)<.5)return;
+      pane.style.flex='0 0 '+w+'px';lastBasis=w+'px';
+    }
+    window.__relayoutPanes=relayout;
+    window.addEventListener('resize',relayout);
+    setTimeout(relayout,0);
     setIco();
   }
 
@@ -223,8 +274,10 @@
     $('editor').addEventListener('input',onEdit);
     $('editor').addEventListener('scroll',function(){var r=$('raw');if(r){r.scrollTop=$('editor').scrollTop;r.scrollLeft=$('editor').scrollLeft;}});
     $('fileInput').addEventListener('change',function(e){if(e.target.files[0])loadFile(e.target.files[0]);e.target.value='';});
-    var top=$('btnOpenTop');if(top)top.addEventListener('click',function(){$('fileInput').click();});
-    var open=$('btnOpen');if(open)open.addEventListener('click',function(){$('fileInput').click();});
+    /* EXE에서는 네이티브 파일창(경로 확보 → 자동저장·제자리저장·로컬이미지 해석 가능), 브라우저에선 FileReader 피커. */
+    function openFile(){if(window.__nativeOpen)window.__nativeOpen();else $('fileInput').click();}
+    var top=$('btnOpenTop');if(top)top.addEventListener('click',openFile);
+    var open=$('btnOpen');if(open)open.addEventListener('click',openFile);
     var blank=$('btnBlank');if(blank)blank.addEventListener('click',startBlank);
     $('btnSave').addEventListener('click',saveDocx);
     var sel=$('tplSelect');if(sel)sel.addEventListener('change',function(){curTemplate=sel.value;});
@@ -316,14 +369,19 @@ window.__resolveLocalImages=async function(src){
     var md=null,imgs=[];
     for(var j=0;j<files.length;j++){var f=files[j];if(!md&&isMdName(f.name))md=f;else if(isImgName(f.name))imgs.push(f);}
     if(md){
-      if(window.__confirmReplaceDoc&&!(await window.__confirmReplaceDoc()))return;   /* 다른 MD 교체 전 확인 */
-      /* 함께 온 이미지는 기존 풀에 '병합'(문서 전환에도 이전 이미지 목록 유지) */
-      window.__drop=window.__drop||{};
-      for(var k=0;k<imgs.length;k++){var im=imgs[k];try{var du=await readDataUrl(im);window.__drop[im.name]=await window.__img.encode(du,im.type||mimeByName(im.name));}catch(e){}}
-      window.__mdDir=null;
       var text=await readText(md);
-      window.__mdName=md.name;window.__fname=md.name.replace(/\.(md|markdown|txt)$/i,"");
-      window.__setEditorText(text);
+      var fname=md.name.replace(/\.(md|markdown|txt)$/i,"");
+      /* 함께 온 이미지 → 새 문서 풀(탭 스냅샷 오염 방지 위해 fresh 객체) */
+      var ndrop={};
+      for(var k=0;k<imgs.length;k++){var im=imgs[k];try{var du=await readDataUrl(im);ndrop[im.name]=await window.__img.encode(du,im.type||mimeByName(im.name));}catch(e){}}
+      if(window.__openDoc){   /* 탭(C): 새 탭으로 열기 */
+        window.__openDoc({path:null,dir:null,name:md.name,fname:fname,text:text,drop:ndrop});
+      }else{
+        if(window.__confirmReplaceDoc&&!(await window.__confirmReplaceDoc()))return;   /* 폴백(탭 없음): 다른 MD 교체 전 확인 */
+        window.__drop=ndrop;window.__mdDir=null;window.__mdPath=null;
+        window.__mdName=md.name;window.__fname=fname;
+        window.__setEditorText(text);
+      }
     }else if(imgs.length&&document.body.classList.contains("loaded")){
       /* 이미지만 드롭 → 파일 풀(window.__drop)에 추가.
          에디터(textarea) 위에 드롭했으면(insAt!=null) 그 위치에 ![](이름) 참조까지 삽입,
@@ -597,4 +655,173 @@ window.__resolveLocalImages=async function(src){
   sync();
   [on,al,bd].forEach(function(el){if(el)el.addEventListener("change",changed);});
   if(txt)txt.addEventListener("input",changed);
+})();
+
+/* ===== B: 변경감지(dirty) · 인-앱 저장흐름 · 공용 토스트 (MDeautify 이식, 브라우저·EXE 공통) ===== */
+(function(){
+  var ta=document.getElementById("editor");if(!ta)return;
+  /* 공용 토스트: 편집기 우상단(📎 배지 자리) #fbToast 재사용 */
+  window.__toast=function(msg){
+    var pane=document.getElementById("editorPane");if(!pane)return;
+    var t=document.getElementById("fbToast");
+    if(!t){t=document.createElement("div");t.id="fbToast";pane.appendChild(t);}
+    t.textContent=msg;
+    t.classList.remove("show");void t.offsetWidth;t.classList.add("show");
+    clearTimeout(t.__tmr);t.__tmr=setTimeout(function(){t.classList.remove("show");},1900);
+  };
+  function toast(msg){if(window.__toast)window.__toast(msg);}
+  /* 변경감지(dirty) 기준선: 마지막으로 저장/로드된 내용 */
+  var savedText=null;
+  window.__markClean=function(){savedText=ta.value;};
+  window.__isDirty=function(){return document.body.classList.contains("loaded")&&ta.value!==savedText;};
+  window.__getSaved=function(){return savedText;};                 /* 탭 스냅샷용(C) */
+  window.__setSaved=function(t){savedText=(t==null?null:t);};      /* 탭 복원용(C) — 기준선 되돌려 dirty 보존 */
+  /* .md 저장(EXE=파일시스템 제자리, 브라우저=다운로드). 경로 없으면 저장 위치 1회 지정. */
+  window.__saveMd=async function(){
+    if(!document.body.classList.contains("loaded"))return;
+    var text=ta.value;
+    var isExe=(typeof window.NL_PORT!=="undefined"&&typeof window.Neutralino!=="undefined");
+    var defName=window.__mdName||((window.__fname||"document")+".md");
+    if(isExe){
+      try{
+        var path=window.__mdPath;
+        if(!path){   /* 드롭 등 경로 미확보 → 저장 위치 1회 지정 */
+          path=await Neutralino.os.showSaveDialog("Markdown 저장",{defaultPath:defName,filters:[{name:"Markdown",extensions:["md","markdown","txt"]},{name:"모든 파일",extensions:["*"]}]});
+          if(!path)return;
+          if(!/\.(md|markdown|txt)$/i.test(path))path+=".md";
+          window.__mdPath=path;
+          window.__mdDir=path.replace(/[\\\/][^\\\/]*$/,"");
+          window.__mdName=path.replace(/^.*[\\\/]/,"");
+          window.__fname=window.__mdName.replace(/\.(md|markdown|txt)$/i,"");
+          if(window.__renderFileBadge)window.__renderFileBadge();
+        }
+        await Neutralino.filesystem.writeFile(path,text);
+        savedText=text;
+        toast("저장됨");
+      }catch(e){try{Neutralino.debug.log("[save] "+e);}catch(_){}if(window.__appAlert)window.__appAlert("저장 중 문제가 발생했습니다.","오류");}
+    }else{   /* 브라우저: 다운로드 */
+      try{var blob=new Blob([text],{type:"text/markdown;charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=defName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);savedText=text;if(window.__appAlert)window.__appAlert("'"+defName+"' 파일을 다운로드했습니다.","다운로드 완료");else toast("다운로드됨");}catch(e){}
+    }
+  };
+  /* 자동 저장: EXE + 경로 있을 때만, 변경 있을 때만 조용히. (기본 __autoSave=off — B4는 선택) */
+  window.__autoSaveMd=async function(){
+    if(!document.body.classList.contains("loaded"))return;
+    var isExe=(typeof window.NL_PORT!=="undefined"&&typeof window.Neutralino!=="undefined");
+    if(!isExe||!window.__mdPath)return;
+    var text=ta.value; if(text===savedText)return;
+    try{await Neutralino.filesystem.writeFile(window.__mdPath,text);savedText=text;toast("자동 저장됨");}
+    catch(e){try{Neutralino.debug.log("[autosave] "+e);}catch(_){}}
+  };
+  document.addEventListener("keydown",function(e){
+    if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&(e.key==="s"||e.key==="S")){e.preventDefault();window.__saveMd();}
+  },true);
+  /* 문서 교체(드롭·열기·빈문서) 전 확인: 변경 없으면 조용히, 자동저장+경로면 저장 후, 그 외 3지선다 */
+  window.__confirmReplaceDoc=async function(){
+    if(!document.body.classList.contains("loaded"))return true;
+    if(!(window.__isDirty&&window.__isDirty()))return true;   /* 변경 없음 → 바로 교체 */
+    if(window.__autoSave&&window.__mdPath){                    /* 자동저장 켜짐 + 경로 → 저장 후 진행 */
+      if(window.__saveMd)await window.__saveMd();
+      return true;
+    }
+    if(window.__confirmSave3){
+      var choice=await window.__confirmSave3({
+        title:"저장하고 열기",
+        message:"편집 중인 문서에 저장하지 않은 변경사항이 있어요.\n저장한 뒤 새 문서를 열까요?",
+        saveText:"저장하고 열기",discardText:"저장 안 함",cancelText:"취소"
+      });
+      if(choice==="cancel")return false;
+      if(choice==="save"){
+        var isExe=(typeof window.NL_PORT!=="undefined"&&typeof window.Neutralino!=="undefined");
+        var hadPath=!!window.__mdPath;
+        if(window.__saveMd)await window.__saveMd();
+        if(isExe&&!hadPath&&!window.__mdPath)return false;   /* EXE 저장 다이얼로그 취소 = 교체도 취소(유실 방지) */
+        return true;
+      }
+      return true;   /* discard = 저장 안 하고 교체 */
+    }
+    return true;
+  };
+})();
+
+/* ===== B(F): EXE(Neutralino) 네이티브 파일 처리 (MDeautify 이식) =====
+   로컬 이미지 경로 해석·제자리 저장·자동저장은 .md 실제 경로를 알 때만 가능.
+   경로 확보: "MD 파일 열기"(os.showOpenDialog) · 실행 인자(NL_ARGS: 더블클릭/연결앱/아이콘에 드롭).
+   창-안 HTML5 드롭은 경로가 없어(WebView2 한계) 문서 로드만 됨 → 이미지는 붙여넣기/드롭 풀로. 브라우저에선 전부 비활성. */
+(function(){
+  if(typeof window.NL_PORT==="undefined"||typeof window.Neutralino==="undefined")return;  /* EXE에서만 */
+  try{Neutralino.init();}catch(e){}
+  function log(m){try{Neutralino.debug.log(String(m));}catch(e){}}
+  function dirOf(p){var i=Math.max(p.lastIndexOf("\\"),p.lastIndexOf("/"));return i<0?"":p.slice(0,i);}
+  function baseOf(p){var i=Math.max(p.lastIndexOf("\\"),p.lastIndexOf("/"));return i<0?p:p.slice(i+1);}
+  function isAbs(p){return /^[a-zA-Z]:[\\\/]/.test(p)||/^[\\\/]/.test(p);}
+  function joinP(dir,rel){rel=rel.replace(/^\.[\\\/]/,"").replace(/\//g,"\\");return dir.replace(/[\\\/]+$/,"")+"\\"+rel;}
+  function mimeOf(p){var e=(p.split(".").pop()||"").toLowerCase();return ({png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",webp:"image/webp",bmp:"image/bmp",svg:"image/svg+xml"})[e]||"application/octet-stream";}
+  function isMdPath(p){return /\.(md|markdown|txt)$/i.test(p);}
+  function isImgPath(p){return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(p);}
+  function blobToDataUrl(b){return new Promise(function(r){var fr=new FileReader();fr.onload=function(){r(fr.result);};fr.readAsDataURL(b);});}
+  async function readAsDataUrl(path){var arr=await Neutralino.filesystem.readBinaryFile(path);return blobToDataUrl(new Blob([new Uint8Array(arr)],{type:mimeOf(path)}));}
+  /* 네이티브 이미지 해석기: .md 폴더(__mdDir) 기준 경로 1건을 읽어 WebP data URI. __resolveLocalImages 가 호출. */
+  window.__nativeResolve=async function(s){
+    if(!window.__mdDir)return null;
+    var abs=isAbs(s)?s.replace(/\//g,"\\"):joinP(window.__mdDir,s);
+    try{var du=await readAsDataUrl(abs);return await window.__img.encode(du,mimeOf(abs));}catch(err){log("[img] resolve fail: "+abs);return null;}
+  };
+  async function openMd(path){
+    try{var text=await Neutralino.filesystem.readFile(path);
+      if(window.__openDoc){window.__openDoc({path:path,dir:dirOf(path),name:baseOf(path),fname:baseOf(path).replace(/\.(md|markdown|txt)$/i,""),text:text});return true;}   /* 탭 매니저(C): 새 탭으로 열기/포커스 */
+      if(window.__confirmReplaceDoc&&!(await window.__confirmReplaceDoc()))return false;   /* 폴백(탭 없음): 교체 전 확인 */
+      window.__mdPath=path;window.__mdDir=dirOf(path);window.__mdName=baseOf(path);window.__fname=baseOf(path).replace(/\.(md|markdown|txt)$/i,"");
+      window.__setEditorText(text);return true;
+    }catch(err){log("[md] open fail: "+path);return false;}
+  }
+  /* "MD 파일 열기" → 네이티브 파일창(.md·이미지). MD=문서 열기 / 이미지=풀에 추가(드롭과 동일) */
+  async function nativeOpen(){try{
+    var ps=await Neutralino.os.showOpenDialog("파일 열기",{filters:[
+      {name:"마크다운·이미지",extensions:["md","markdown","txt","png","jpg","jpeg","gif","webp","bmp","svg"]},
+      {name:"마크다운",extensions:["md","markdown","txt"]},
+      {name:"이미지",extensions:["png","jpg","jpeg","gif","webp","bmp","svg"]},
+      {name:"모든 파일",extensions:["*"]}
+    ],multiSelections:true});
+    if(!ps||!ps.length)return;
+    var mdPath=null,imgPaths=[];
+    for(var i=0;i<ps.length;i++){if(!mdPath&&isMdPath(ps[i]))mdPath=ps[i];else if(isImgPath(ps[i]))imgPaths.push(ps[i]);}
+    if(mdPath){openMd(mdPath);return;}
+    if(imgPaths.length&&document.body.classList.contains("loaded")){   /* 이미지 = 풀에 추가 후 재렌더 */
+      window.__drop=window.__drop||{};
+      var nAdded=0;for(var k=0;k<imgPaths.length;k++){var pth=imgPaths[k];try{var du=await readAsDataUrl(pth);window.__drop[baseOf(pth)]=await window.__img.encode(du,mimeOf(pth));nAdded++;}catch(e){log("[open img] "+pth);}}
+      var cur=document.getElementById("editor");
+      if(window.__render)window.__render(cur?cur.value:(window.__lastText||""),true);
+      if(nAdded&&window.__flashBadge)window.__flashBadge(nAdded);
+    }
+  }catch(e){log("[open] "+e);}}
+  window.__nativeOpen=nativeOpen;
+  window.__openMdPath=openMd;   /* 탐색기(D)에서 경로로 문서 열기 재사용 */
+  /* 탐색기(D) 이미지 클릭 = 현재 커서 위치에 ![](경로) 삽입. __mdDir 기준 상대경로(없으면 절대/풀 폴백). */
+  window.__insertImageFromPath=async function(abs){
+    if(!document.body.classList.contains("loaded"))return;
+    var ta=document.getElementById("editor");if(!ta)return;
+    var base=baseOf(abs),ref=null;
+    if(window.__mdDir){
+      try{ref=await Neutralino.filesystem.getRelativePath(abs,window.__mdDir);}catch(e){ref=null;}
+      if(ref)ref=ref.replace(/\\/g,"/");
+      if(!ref)ref=abs.replace(/\\/g,"/");   /* 상대경로 실패(다른 드라이브 등) → 절대 폴백 */
+    }else{
+      try{var du=await readAsDataUrl(abs);window.__drop=window.__drop||{};window.__drop[base]=await window.__img.encode(du,mimeOf(abs));}catch(e){log("[ins img] "+abs);}
+      ref=base;
+    }
+    var alt=base.replace(/\.[a-z0-9]+$/i,"");
+    var dest=/\s/.test(ref)?"<"+ref+">":ref;
+    var snippet="!["+alt+"]("+dest+")";
+    var pos=ta.value.length;try{if(ta.selectionStart!=null)pos=ta.selectionStart;}catch(e){}
+    pos=Math.min(Math.max(0,pos|0),ta.value.length);
+    var before=ta.value.slice(0,pos),after=ta.value.slice(pos);
+    var block=(before&&!/\n$/.test(before)?"\n":"")+snippet+(after&&!/^\n/.test(after)?"\n":"");
+    var nt=before+block+after;ta.value=nt;
+    if(window.__syncMirror)window.__syncMirror();
+    try{ta.selectionStart=ta.selectionEnd=(before+block).length;ta.focus();}catch(e){}
+    if(window.__render)window.__render(nt,true);
+  };
+  window.__imgDataUrl=async function(abs){try{return await readAsDataUrl(abs);}catch(e){log("[imgpreview] "+abs);return null;}};   /* 탐색기 썸네일용(원본 바이트) */
+  /* 실행 인자로 넘어온 .md 자동 열기(더블클릭/연결앱/아이콘에 드롭) */
+  try{var a=window.NL_ARGS||[];for(var i=1;i<a.length;i++){if(isMdPath(a[i])&&isAbs(a[i])){openMd(a[i]);break;}}}catch(e){}
 })();
