@@ -40,6 +40,11 @@ if ($doExe) {
   if (-not (Test-Path $built)) { throw "빌드 산출물을 찾을 수 없음: $built" }
   Copy-Item $built (Join-Path $release "MDocify.exe") -Force
   Write-Host "[EXE] release\MDocify.exe (단일 파일, 리소스 내장) 생성" -ForegroundColor Green
+  # 자동 업데이트가 내려받은 exe 를 SHA256 으로 검증하므로 릴리스에 함께 올릴 해시 파일을 만든다.
+  $outExe = Join-Path $release "MDocify.exe"
+  $hash = (Get-FileHash $outExe -Algorithm SHA256).Hash.ToLower()
+  Set-Content -LiteralPath "$outExe.sha256" -Value "$hash  MDocify.exe" -Encoding ascii -NoNewline
+  Write-Host "[EXE] release\MDocify.exe.sha256 = $hash" -ForegroundColor Green
 }
 
 Write-Host ""

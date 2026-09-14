@@ -604,7 +604,7 @@ window.__resolveLocalImages=async function(src){
     if(fontSel)fontSel.value=state.font;
     if(sizeInp)sizeInp.value=state.sizePx;if(sizeVal)sizeVal.textContent=state.sizePx+"px";
     if(rememberInp)rememberInp.checked=remember;mark();}
-  function openModal(){syncControls();modal.hidden=false;var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));var top=r.bottom+6;modal.style.top=top+"px";modal.style.left=left+"px";if(card){card.style.maxHeight=(window.innerHeight-top-12)+"px";}}
+  function openModal(){syncControls();modal.hidden=false;if(window.__updateCheck)window.__updateCheck();   /* 설정 열 때 업데이트 확인(캐시 재사용) */ var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));var top=r.bottom+6;modal.style.top=top+"px";modal.style.left=left+"px";if(card){card.style.maxHeight=(window.innerHeight-top-12)+"px";}}
   function closeModal(){modal.hidden=true;}
   trigger.addEventListener("click",function(e){e.stopPropagation();modal.hidden?openModal():closeModal();});
   document.addEventListener("click",function(e){if(!modal.hidden&&!modal.contains(e.target)&&e.target!==trigger&&!trigger.contains(e.target))closeModal();});
