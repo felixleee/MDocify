@@ -46,7 +46,7 @@
       <span class='spacer'></span>
       <button id='btnDocSettings' title='문서 설정 (색·폰트·크기)'>문서 설정</button>
       <button id='btnAI' title='AI 작성 도우미 (Ctrl+Shift+A)'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z'/></svg><span class='ai-lbl'>AI 도우미</span></button>
-      <label class='mode-sw' title='다크 모드'>다크<input type='checkbox' id='darkToggle'></label>
+      <button id='btnSettings' title='설정' aria-label='설정'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
       <button id='btnSave' title='현재 내용을 .docx 로 저장'>Word로 저장 (.docx)</button>
       <input id='fileInput' type='file' accept='.md,.markdown,.txt' style='display:none'>
     </div>
@@ -128,6 +128,25 @@
             <label for='tmRemember'>선택한 설정 기억하기</label>
             <input type='checkbox' id='tmRemember' class='tm-switch'>
           </div>
+        </div>
+      </div>
+    </div>
+    <div id='settingsModal' hidden>
+      <div class='tm-card'>
+        <div class='tm-head'>
+          <span class='tm-title'>설정</span>
+          <button class='tm-close' id='stClose' title='닫기'>×</button>
+        </div>
+        <div class='tm-opts'>
+          <div class='tm-opt'>
+            <label for='darkToggle'>다크 모드</label>
+            <input type='checkbox' id='darkToggle' class='tm-switch'>
+          </div>
+          <div class='tm-opt'>
+            <label for='tmAutoSave' title='켜면 편집을 멈춘 뒤 미리보기가 갱신될 때 원본 .md 파일에도 자동 저장됩니다.'>자동 저장</label>
+            <input type='checkbox' id='tmAutoSave' class='tm-switch'>
+          </div>
+          <div class='tm-opt-note'>파일이 연결돼 있을 때, 편집 후 자동으로 원본에 저장합니다.</div>
         </div>
           <div class='tm-about' id='tmAbout' hidden>
             <div class='tm-sec-head'><span class='tm-sec-title'>정보 · 업데이트</span></div>

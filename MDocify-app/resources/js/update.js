@@ -80,7 +80,7 @@ function __updEsc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/
   var about=document.getElementById("tmAbout"),verEl=document.getElementById("tmVer"),
       btn=document.getElementById("tmUpd"),box=document.getElementById("tmUpdBox"),msg=document.getElementById("tmUpdMsg"),
       act=document.getElementById("tmUpdAct"),link=document.getElementById("tmUpdLink"),go=document.getElementById("tmUpdGo"),
-      settingsBtn=document.getElementById("btnDocSettings"),
+      settingsBtn=document.getElementById("btnSettings"),
       updModal=document.getElementById("updModal"),updMsgEl=document.getElementById("updMsg");
   if(!about||!isExe)return;                                  /* 버전/업데이트 정보는 EXE 에서만 */
   function showUpd(t){if(updMsgEl)updMsgEl.textContent=t;if(updModal)updModal.hidden=false;}

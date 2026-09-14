@@ -306,11 +306,11 @@ body.explorer-collapsed #explorer{display:none;}
 
 /* ---------- 문서 설정 모달 (MDeautify 테마 모달 이식) ---------- */
 #themeModal{position:fixed;z-index:50;}
-#themeModal[hidden]{display:none;}
-#themeModal .tm-card{background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:12px;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:320px;max-width:calc(100vw - 32px);max-height:calc(100vh - 66px);overflow-y:auto;}
-#themeModal .tm-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;}
-#themeModal .tm-title{font-size:14px;font-weight:700;color:var(--tm-fg);}
-#themeModal .tm-close{border:0;background:none;font-size:18px;line-height:1;color:var(--tm-close);cursor:pointer;padding:2px 4px;}
+#themeModal,#settingsModal[hidden]{display:none;}
+#themeModal,#settingsModal .tm-card{background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:12px;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:320px;max-width:calc(100vw - 32px);max-height:calc(100vh - 66px);overflow-y:auto;}
+#themeModal,#settingsModal .tm-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;}
+#themeModal,#settingsModal .tm-title{font-size:14px;font-weight:700;color:var(--tm-fg);}
+#themeModal,#settingsModal .tm-close{border:0;background:none;font-size:18px;line-height:1;color:var(--tm-close);cursor:pointer;padding:2px 4px;}
 #tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 #tm-grid button{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--tm-border);border-radius:8px;background:var(--tm-card);cursor:pointer;font:inherit;font-size:12px;color:var(--tm-fg2);text-align:left;}
 #tm-grid button:hover{border-color:var(--tm-bhover);background:var(--tm-hover-bg);}
@@ -522,7 +522,7 @@ body{
 #tmUpdGo{flex:0 0 auto;border:0;background:var(--ui-brand-accent);color:#fff;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;}
 #tmUpdGo:hover{filter:brightness(1.06);}
 #tmUpdGo:disabled{opacity:.6;cursor:default;}
-#btnDocSettings.has-update::after{content:"";position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--st-warn);box-shadow:0 0 0 2px var(--ui-bar-bg);}
+#btnSettings.has-update::after{content:"";position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--st-warn);box-shadow:0 0 0 2px var(--ui-bar-bg);}
 #notesModal{position:fixed;inset:0;z-index:210;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(15,17,26,.44);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
 #notesModal[hidden]{display:none;}
 #notesModal .nm-card{background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.4);width:520px;max-width:calc(100vw - 48px);max-height:calc(100vh - 96px);display:flex;flex-direction:column;overflow:hidden;}
@@ -550,3 +550,13 @@ body{
 #updModal .upd-spin{width:30px;height:30px;border-radius:50%;border:3px solid color-mix(in srgb,var(--ui-brand-accent) 28%,transparent);border-top-color:var(--ui-brand-accent);animation:updspin .8s linear infinite;}
 #updModal .upd-msg{font-size:13px;font-weight:700;color:var(--tm-fg2);white-space:nowrap;}
 @keyframes updspin{to{transform:rotate(360deg);}}
+
+/* ===== 설정(톱니) 버튼 · 모달 (MDeautify 이식) ===== */
+#themeModal,#settingsModal{position:fixed;z-index:50;}
+#settingsModal[hidden]{display:none;}
+#bar button#btnSettings{display:inline-flex;align-items:center;justify-content:center;border-color:transparent;color:var(--tm-muted);height:35px;padding:0 9px;transition:background .12s,color .12s;}
+#bar button#btnSettings:hover{background:color-mix(in srgb,var(--tm-fg2) 12%,transparent);border-color:transparent;color:var(--tm-fg2);}
+#bar button#btnSettings:active{background:color-mix(in srgb,var(--tm-fg2) 18%,transparent);}
+#bar button#btnSettings svg{display:block;}
+#settingsModal .tm-opts{margin-top:0;padding-top:0;border-top:0;}
+#settingsModal .tm-opt-note{font-size:11px;color:color-mix(in srgb,var(--tm-fg) 55%,transparent);margin:-4px 0 0;}

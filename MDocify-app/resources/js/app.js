@@ -604,7 +604,7 @@ window.__resolveLocalImages=async function(src){
     if(fontSel)fontSel.value=state.font;
     if(sizeInp)sizeInp.value=state.sizePx;if(sizeVal)sizeVal.textContent=state.sizePx+"px";
     if(rememberInp)rememberInp.checked=remember;mark();}
-  function openModal(){syncControls();modal.hidden=false;if(window.__updateCheck)window.__updateCheck();   /* 설정 열 때 업데이트 확인(캐시 재사용) */ var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));var top=r.bottom+6;modal.style.top=top+"px";modal.style.left=left+"px";if(card){card.style.maxHeight=(window.innerHeight-top-12)+"px";}}
+  function openModal(){syncControls();modal.hidden=false;var r=trigger.getBoundingClientRect();var card=modal.firstElementChild,w=card?card.offsetWidth:320;var left=Math.max(8,Math.min(r.left,window.innerWidth-w-8));var top=r.bottom+6;modal.style.top=top+"px";modal.style.left=left+"px";if(card){card.style.maxHeight=(window.innerHeight-top-12)+"px";}}
   function closeModal(){modal.hidden=true;}
   trigger.addEventListener("click",function(e){e.stopPropagation();modal.hidden?openModal():closeModal();});
   document.addEventListener("click",function(e){if(!modal.hidden&&!modal.contains(e.target)&&e.target!==trigger&&!trigger.contains(e.target))closeModal();});
@@ -824,4 +824,31 @@ window.__resolveLocalImages=async function(src){
   window.__imgDataUrl=async function(abs){try{return await readAsDataUrl(abs);}catch(e){log("[imgpreview] "+abs);return null;}};   /* 탐색기 썸네일용(원본 바이트) */
   /* 실행 인자로 넘어온 .md 자동 열기(더블클릭/연결앱/아이콘에 드롭) */
   try{var a=window.NL_ARGS||[];for(var i=1;i<a.length;i++){if(isMdPath(a[i])&&isAbs(a[i])){openMd(a[i]);break;}}}catch(e){}
+})();
+
+/* ===== 설정(톱니) 모달 열기/닫기 — 다크 모드·자동 저장·정보/업데이트를 담음 (MDeautify 이식) ===== */
+(function(){
+  var trigger=document.getElementById('btnSettings'),modal=document.getElementById('settingsModal');
+  if(!trigger||!modal)return;
+  function open(){
+    modal.hidden=false;
+    var r=trigger.getBoundingClientRect(),w=modal.offsetWidth||300;
+    var left=Math.max(8,Math.min(r.right-w,window.innerWidth-w-8));
+    modal.style.top=(r.bottom+8)+'px';modal.style.left=left+'px';
+    /* 업데이트 대기(점 표시) 중에 톱니를 열면 '업데이트 확인'을 누른 것처럼 결과를 바로 표시 */
+    if(window.__updateCheck)window.__updateCheck();
+  }
+  function close(){modal.hidden=true;}
+  trigger.addEventListener('click',function(e){e.stopPropagation();modal.hidden?open():close();});
+  document.addEventListener('click',function(e){if(!modal.hidden&&!modal.contains(e.target)&&e.target!==trigger&&!trigger.contains(e.target))close();});
+  var x=document.getElementById('stClose');if(x)x.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!modal.hidden)close();});
+})();
+/* 자동 저장 토글 — __autoSaveMd 는 이미 있었지만 켤 UI 가 없었다(#2 이식 잔여). */
+(function(){
+  var cb=document.getElementById('tmAutoSave');if(!cb)return;
+  var KEY='mdocify_autosave',on=false;
+  try{on=localStorage.getItem(KEY)==='1';}catch(e){}
+  window.__autoSave=on;cb.checked=on;
+  cb.addEventListener('change',function(){window.__autoSave=cb.checked;try{localStorage.setItem(KEY,cb.checked?'1':'0');}catch(e){}});
 })();
