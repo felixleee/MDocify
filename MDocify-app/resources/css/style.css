@@ -338,7 +338,7 @@ body.explorer-collapsed #explorer{display:none;}
 .tm-switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .tm-switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--tm-knob);transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
 .tm-switch:checked::after{left:20px;}
-#tmFont:focus,#tmColor:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent);}
+#tmFont:focus,#tmColor:focus,#tplSelect:focus,.ai-model:focus,.ai-effort:focus,#aiInput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent);}
 .tm-foot{margin-top:12px;padding-top:12px;border-top:1px solid var(--tm-border);}
 .tm-foot-head{display:flex;align-items:center;justify-content:space-between;}
 .tm-foot-head label{font-size:12px;font-weight:700;color:var(--tm-fg2);}
@@ -374,7 +374,7 @@ body{
 .ai-head{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:7px 8px 7px 12px;border-bottom:1px solid var(--ui-editor-border);}
 .ai-title{font-size:12px;font-weight:700;color:var(--tm-fg);}
 .ai-spacer{flex:1 1 auto;}
-.ai-model{font:inherit;font-size:11px;max-width:130px;background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:6px;padding:3px 4px;}
+.ai-model{font:inherit;font-size:11px;max-width:130px;background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-bhover);border-radius:6px;padding:3px 4px;}
 .ai-ico{border:0;background:transparent;color:var(--ui-drop-fg);cursor:pointer;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:13px;}
 .ai-ico:hover{background:var(--tm-hover-bg);color:var(--tm-fg);}
 .ai-keysetup{flex:0 0 auto;padding:10px 12px;border-bottom:1px solid var(--ui-editor-border);background:var(--tm-hover-bg);}
@@ -401,7 +401,7 @@ body{
 .ai-input-wrap{flex:0 0 auto;border-top:1px solid var(--ui-editor-border);padding:8px 10px 10px;}
 .ai-optrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
 .ai-effort-wrap{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--tm-muted);cursor:pointer;white-space:nowrap;flex:0 0 auto;}
-.ai-effort{font:inherit;font-size:11px;background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:6px;padding:3px 4px;cursor:pointer;}
+.ai-effort{font:inherit;font-size:11px;background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-bhover);border-radius:6px;padding:3px 4px;cursor:pointer;}
 .ai-ctx{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--tm-fg2);cursor:pointer;}
 .ai-ctx input[type=checkbox]{accent-color:var(--ui-brand-accent);cursor:pointer;}
 .ai-cred{margin-top:8px;text-align:center;font-size:10.5px;letter-spacing:.2px;color:var(--tm-muted);user-select:none;}
@@ -460,7 +460,7 @@ body{
 .lg-next{border:1px solid var(--ui-brand-accent);background:var(--ui-brand-accent);color:#fff;}
 .lg-next:hover{background:color-mix(in srgb,var(--ui-brand-accent) 88%,#000);}
 .ai-input-row{display:flex;flex-direction:row;gap:6px;align-items:stretch;}
-#aiInput{flex:1 1 auto;min-width:0;box-sizing:border-box;resize:none;font:inherit;font-size:12.5px;line-height:1.5;padding:7px 9px;border:1px solid var(--tm-border);border-radius:8px;background:var(--tm-card);color:var(--tm-fg);min-height:54px;max-height:140px;overflow-y:auto;}
+#aiInput{flex:1 1 auto;min-width:0;box-sizing:border-box;resize:none;font:inherit;font-size:12.5px;line-height:1.5;padding:7px 9px;border:1px solid var(--tm-bhover);border-radius:8px;background:var(--tm-card);color:var(--tm-fg);min-height:54px;max-height:140px;overflow-y:auto;}
 .ai-input-actions{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;}
 #aiSend,#aiStop{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-width:60px;font:inherit;font-size:12px;font-weight:700;border-radius:8px;padding:0 14px;cursor:pointer;border:1px solid var(--ui-brand-accent);}
 #aiSend[hidden],#aiStop[hidden]{display:none;}   /* display:flex 가 [hidden] 을 덮지 않도록 */
