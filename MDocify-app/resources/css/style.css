@@ -50,7 +50,7 @@ body.dark{
   --ed-bg:#1e1e1e;--ed-fg:#d4d4d4;--ed-border:#0b0b0b;
   --pv-bg:#111827;--pane-head:#0f172a;--pane-head-fg:#94a3b8;
   --drop-fg:#94a3b8;--st-ok:#4ade80;--st-bad:#f87171;
-  --sb-thumb:#3f4b5b;--sb-track:#1a2230;
+  --sb-thumb:#3f4b5b;--sb-track:#1a2230;--st-warn:#fbbf24;
   --sx-h:#569cd6;--sx-q:#6a9955;--sx-l:#c586c0;--sx-c:#ce9178;--sx-b:#d7ba7d;--sx-lk:#4ec9b0;
   --tm-card:#28323f;--tm-fg:#f1f5f9;--tm-fg2:#cbd5e1;--tm-muted:#94a3b8;--tm-close:#94a3b8;--tm-border:#3a4657;--tm-bhover:#4b5a6e;--tm-hover-bg:#334155;--tm-switch-off:#475569;--tm-knob:#e5e7eb;--tm-ring:rgba(255,255,255,.20);
   --pvhead-bg:#111827;--pvhead-border:#0b0b0b;--drop-bg:#0f172a;--drop-h:#e2e8f0;--drop-drag:#111827;
@@ -305,12 +305,12 @@ body.explorer-collapsed #explorer{display:none;}
 #filePop .fp-hint b{color:var(--ed-fg);font-weight:700;}
 
 /* ---------- 문서 설정 모달 (MDeautify 테마 모달 이식) ---------- */
-#themeModal{position:fixed;z-index:50;}
-#themeModal,#settingsModal[hidden]{display:none;}
-#themeModal,#settingsModal .tm-card{background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:12px;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:320px;max-width:calc(100vw - 32px);max-height:calc(100vh - 66px);overflow-y:auto;}
-#themeModal,#settingsModal .tm-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;}
-#themeModal,#settingsModal .tm-title{font-size:14px;font-weight:700;color:var(--tm-fg);}
-#themeModal,#settingsModal .tm-close{border:0;background:none;font-size:18px;line-height:1;color:var(--tm-close);cursor:pointer;padding:2px 4px;}
+#themeModal,#settingsModal{position:fixed;z-index:50;}
+#themeModal[hidden],#settingsModal[hidden]{display:none;}
+#themeModal .tm-card,#settingsModal .tm-card{background:var(--tm-card);color:var(--tm-fg);border:1px solid var(--tm-border);border-radius:12px;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:320px;max-width:calc(100vw - 32px);max-height:calc(100vh - 66px);overflow-y:auto;}
+#themeModal .tm-head,#settingsModal .tm-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;}
+#themeModal .tm-title,#settingsModal .tm-title{font-size:14px;font-weight:700;color:var(--tm-fg);}
+#themeModal .tm-close,#settingsModal .tm-close{border:0;background:none;font-size:18px;line-height:1;color:var(--tm-close);cursor:pointer;padding:2px 4px;}
 #tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 #tm-grid button{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--tm-border);border-radius:8px;background:var(--tm-card);cursor:pointer;font:inherit;font-size:12px;color:var(--tm-fg2);text-align:left;}
 #tm-grid button:hover{border-color:var(--tm-bhover);background:var(--tm-hover-bg);}
@@ -367,6 +367,8 @@ body{
   --ui-editor-border:var(--ed-border);
   --ui-editor-fg:var(--ed-fg);
   --ui-drop-fg:var(--drop-fg);
+  --ui-bar-bg:var(--bar-bg);
+  --st-warn:#f59e0b;   /* MDocify 팔레트엔 주의색이 없었다(업데이트 알림 점에 필요) */
 }
 
 #aiResizer{flex:0 0 5px;cursor:col-resize;background:var(--ui-editor-border);position:relative;z-index:5;order:1;}   /* order:1 → 항상 맨 오른쪽(문서 없을 때 #drop 이 aiPanel 뒤라 끼어들던 문제 방지) */
@@ -552,9 +554,7 @@ body{
 @keyframes updspin{to{transform:rotate(360deg);}}
 
 /* ===== 설정(톱니) 버튼 · 모달 (MDeautify 이식) ===== */
-#themeModal,#settingsModal{position:fixed;z-index:50;}
-#settingsModal[hidden]{display:none;}
-#bar button#btnSettings{display:inline-flex;align-items:center;justify-content:center;border-color:transparent;color:var(--tm-muted);height:35px;padding:0 9px;transition:background .12s,color .12s;}
+#bar button#btnSettings{position:relative;display:inline-flex;align-items:center;justify-content:center;border-color:transparent;color:var(--tm-muted);height:35px;padding:0 9px;transition:background .12s,color .12s;}
 #bar button#btnSettings:hover{background:color-mix(in srgb,var(--tm-fg2) 12%,transparent);border-color:transparent;color:var(--tm-fg2);}
 #bar button#btnSettings:active{background:color-mix(in srgb,var(--tm-fg2) 18%,transparent);}
 #bar button#btnSettings svg{display:block;}
