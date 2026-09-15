@@ -36,16 +36,16 @@
         </svg>
         <span class='brand-lock'><span class='brand-title'><span class='m-hi'>MD</span><span class='m-rest'>ocify</span><span class='season'>md2docx</span></span></span>
       </span>
-      <button id='btnExplorer' title='폴더 탐색기 (Ctrl+B)' hidden>탐색기</button>
+      <button id='btnExplorer' title='폴더 탐색기 (Ctrl+B)' aria-label='폴더 탐색기' hidden><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><rect x='3' y='4' width='18' height='16' rx='2'/><line x1='9' y1='4' x2='9' y2='20'/></svg></button>
       <button id='btnOpenTop' title='다른 MD 파일 열기'>MD 파일 열기</button>
       <label class='mode-sw' title='템플릿'>템플릿
         <select id='tplSelect'>
           <option value='clean'>표준 (편집용)</option>
         </select>
       </label>
-      <span class='spacer'></span>
       <button id='btnDocSettings' title='문서 설정 (색·폰트·크기)'>문서 설정</button>
       <button id='btnAI' title='AI 작성 도우미 (Ctrl+Shift+A)'><svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z'/><path d='M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z'/></svg><span class='ai-lbl'>AI 도우미</span></button>
+      <span class='spacer'></span>
       <button id='btnSettings' title='설정' aria-label='설정'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
       <button id='btnSave' title='현재 내용을 .docx 로 저장'>Word로 저장 (.docx)</button>
       <input id='fileInput' type='file' accept='.md,.markdown,.txt' style='display:none'>

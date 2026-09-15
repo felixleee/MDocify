@@ -560,3 +560,8 @@ body{
 #bar button#btnSettings svg{display:block;}
 #settingsModal .tm-opts{margin-top:0;padding-top:0;border-top:0;}
 #settingsModal .tm-opt-note{font-size:11px;color:color-mix(in srgb,var(--tm-fg) 55%,transparent);margin:-4px 0 0;}
+
+/* 탐색기 토글 — 아이콘 버튼 (MDeautify 구성) */
+#bar button#btnExplorer{display:inline-flex;align-items:center;justify-content:center;height:35px;padding:0 11px;}
+#bar button#btnExplorer svg{display:block;}
+#bar button#btnExplorer.on{background:color-mix(in srgb,var(--accent) 20%,transparent);}
