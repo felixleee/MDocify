@@ -72,11 +72,6 @@ body.dark{
 #bar button#btnSave:hover{filter:brightness(1.06);}
 #bar button:disabled{opacity:.5;cursor:default;}
 #bar select{font:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--ed-border);border-radius:6px;background:var(--ed-bg);color:var(--ed-fg);cursor:pointer;}
-.mode-sw{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:2px;}
-.mode-sw input{width:34px;height:18px;appearance:none;-webkit-appearance:none;background:var(--tm-switch-off);border-radius:9px;position:relative;cursor:pointer;transition:background .15s;}
-.mode-sw input:checked{background:var(--accent);}
-.mode-sw input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--tm-knob);transition:left .15s;}
-.mode-sw input:checked::after{left:18px;}
 
 /* 본문 스플릿 */
 #main{flex:1 1 auto;display:flex;min-height:0;position:relative;}
@@ -565,3 +560,8 @@ body{
 #bar button#btnExplorer{display:inline-flex;align-items:center;justify-content:center;height:35px;padding:0 11px;}
 #bar button#btnExplorer svg{display:block;}
 #bar button#btnExplorer.on{background:color-mix(in srgb,var(--accent) 20%,transparent);}
+
+/* 템플릿 선택 — 문서 설정 모달 최상단 (v1.0.5: 툴바에서 이동) */
+.tm-tpl{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:8px 10px;border:1px solid var(--tm-border);border-radius:8px;}
+.tm-tpl label{font-size:12px;font-weight:700;color:var(--tm-fg2);cursor:pointer;}
+#tplSelect{font:inherit;font-size:12px;padding:5px 9px;border:1px solid var(--tm-bhover);border-radius:6px;background:var(--tm-card);color:var(--tm-fg);cursor:pointer;}
