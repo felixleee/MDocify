@@ -698,9 +698,10 @@ window.__resolveLocalImages=async function(src){
         await Neutralino.filesystem.writeFile(path,text);
         savedText=text;
         toast("저장됨");
+        if(window.__tabsOnEdit)window.__tabsOnEdit();   /* 기준선이 바뀌었으니 탭의 미저장 점 재계산(안 하면 다음 입력·탭 전환 때까지 점이 남음) */
       }catch(e){try{Neutralino.debug.log("[save] "+e);}catch(_){}if(window.__appAlert)window.__appAlert("저장 중 문제가 발생했습니다.","오류");}
     }else{   /* 브라우저: 다운로드 */
-      try{var blob=new Blob([text],{type:"text/markdown;charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=defName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);savedText=text;if(window.__appAlert)window.__appAlert("'"+defName+"' 파일을 다운로드했습니다.","다운로드 완료");else toast("다운로드됨");}catch(e){}
+      try{var blob=new Blob([text],{type:"text/markdown;charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=defName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);savedText=text;if(window.__tabsOnEdit)window.__tabsOnEdit();if(window.__appAlert)window.__appAlert("'"+defName+"' 파일을 다운로드했습니다.","다운로드 완료");else toast("다운로드됨");}catch(e){}
     }
   };
   /* 자동 저장: EXE + 경로 있을 때만, 변경 있을 때만 조용히. (기본 __autoSave=off — B4는 선택) */
@@ -709,7 +710,7 @@ window.__resolveLocalImages=async function(src){
     var isExe=(typeof window.NL_PORT!=="undefined"&&typeof window.Neutralino!=="undefined");
     if(!isExe||!window.__mdPath)return;
     var text=ta.value; if(text===savedText)return;
-    try{await Neutralino.filesystem.writeFile(window.__mdPath,text);savedText=text;toast("자동 저장됨");}
+    try{await Neutralino.filesystem.writeFile(window.__mdPath,text);savedText=text;toast("자동 저장됨");if(window.__tabsOnEdit)window.__tabsOnEdit();}   /* 저장 후 탭 점 재계산 — 자동 저장은 입력 후에 일어나 이게 없으면 점이 항상 떠 있음 */
     catch(e){try{Neutralino.debug.log("[autosave] "+e);}catch(_){}}
   };
   document.addEventListener("keydown",function(e){

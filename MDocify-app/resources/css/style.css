@@ -79,11 +79,36 @@ body.dark{
 #editorPane{flex:0 0 50%;position:relative;overflow:hidden;background:var(--ed-bg);}
 #previewWrap{flex:1 1 auto;background:var(--pv-bg);}
 /* 편집 오버레이: #raw(색칠 미러, 뒤) + #editor(투명 textarea, 앞). 두 요소의 박스/폰트/줄바꿈/스크롤바 거터가 동일해야 글자 위치가 정확히 겹침. */
-#raw,#editor{position:absolute;inset:0;box-sizing:border-box;margin:0;padding:18px 20px;font-family:"Cascadia Code","Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;scrollbar-gutter:stable;tab-size:2;}
+#findHl,#raw,#editor{position:absolute;inset:0;box-sizing:border-box;margin:0;padding:18px 20px;font-family:"Cascadia Code","Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;scrollbar-gutter:stable;scrollbar-width:thin;tab-size:2;}
+/* ⚠️ scrollbar-width 는 세 레이어 공통이어야 함: textarea 만 thin 이면 스크롤바 자리(gutter)가 미러보다 좁아 본문폭이 5px 넓어지고,
+   긴 줄이 서로 다른 위치에서 줄바꿈돼 커서·선택이 보이는 글자보다 한 줄씩 위로 밀림(긴 표 줄마다 누적). */
 #raw{overflow:hidden;pointer-events:none;color:var(--ed-fg);background:transparent;z-index:1;}
-#editor{overflow-x:hidden;overflow-y:auto;border:0;outline:0;resize:none;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--ed-fg);z-index:2;scrollbar-width:thin;scrollbar-color:var(--sb-thumb) var(--sb-track);}
+#editor{overflow-x:hidden;overflow-y:auto;border:0;outline:0;resize:none;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--ed-fg);z-index:2;scrollbar-color:var(--sb-thumb) var(--sb-track);}
 #editor::selection{background:color-mix(in srgb, var(--accent) 30%, transparent);}
 #raw .mh{color:var(--sx-h);} #raw .mq{color:var(--sx-q);} #raw .ml{color:var(--sx-l);} #raw .mc{color:var(--sx-c);} #raw .mb{color:var(--sx-b);} #raw .mlk{color:var(--sx-lk);}
+/* 찾기 하이라이트 레이어: #raw 뒤(z0). 글자는 투명, mark 배경만 보임 → 뒤에서 매치 강조 */
+#findHl{overflow:hidden;pointer-events:none;color:transparent;-webkit-text-fill-color:transparent;background:transparent;z-index:0;}
+#findHl mark.fh{background:color-mix(in srgb, #f4c430 50%, transparent);color:transparent;-webkit-text-fill-color:transparent;border-radius:2px;}
+#findHl mark.fh.cur{background:color-mix(in srgb, #ff8c00 80%, transparent);}
+/* ===== 찾기/바꾸기 바 (Ctrl+F / Ctrl+H) ===== */
+#findBar[hidden]{display:none;}
+#findBar{position:absolute;top:8px;right:16px;z-index:6;display:flex;flex-direction:row;align-items:center;gap:3px;background:var(--ed-bg);border:1px solid color-mix(in srgb, var(--ed-fg) 22%, transparent);border-radius:8px;padding:7px 8px;box-shadow:0 4px 14px rgba(0,0,0,.22);}
+#findBar .fb-fields{display:flex;flex-direction:column;gap:5px;}
+#findBar .fb-toggle{flex:0 0 auto;align-self:center;display:flex;align-items:center;justify-content:center;width:22px;height:28px;font-size:9px;border:0;background:transparent;color:color-mix(in srgb, var(--ed-fg) 60%, transparent);cursor:pointer;border-radius:5px;padding:0;transition:transform .12s;}
+#findBar .fb-toggle:hover{background:color-mix(in srgb, var(--ed-fg) 12%, transparent);}
+#findBar.replace-open .fb-toggle{transform:rotate(90deg);}
+#findBar:not(.replace-open) .fb-repl-row{display:none;}
+#findBar .fb-row{display:flex;align-items:center;gap:4px;}
+#findBar input{font:inherit;font-size:12.5px;width:184px;padding:5px 8px;border:1px solid color-mix(in srgb, var(--ed-fg) 25%, transparent);border-radius:5px;background:color-mix(in srgb, var(--ed-fg) 6%, transparent);color:var(--ed-fg);outline:none;}
+#findBar input:focus{border-color:var(--accent);}
+#findBar .fb-count{font-size:11px;color:color-mix(in srgb, var(--ed-fg) 65%, transparent);min-width:40px;text-align:center;white-space:nowrap;}
+#findBar .fb-ico,#findBar .fb-tgl{font:inherit;font-size:12px;line-height:1;border:1px solid transparent;background:transparent;color:color-mix(in srgb, var(--ed-fg) 75%, transparent);cursor:pointer;padding:5px 6px;border-radius:5px;}
+#findBar .fb-ico:hover,#findBar .fb-tgl:hover{background:color-mix(in srgb, var(--ed-fg) 12%, transparent);}
+#findBar .fb-tgl{font-weight:700;}
+#findBar .fb-tgl.active{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);}
+#findBar .fb-btn{font:inherit;font-size:11.5px;font-weight:600;border:1px solid var(--accent);border-radius:5px;padding:5px 9px;cursor:pointer;background:transparent;color:var(--accent);white-space:nowrap;}
+#findBar .fb-btn:hover{background:color-mix(in srgb, var(--accent) 16%, transparent);}
+#findBar .fb-btn:disabled,#findBar .fb-ico:disabled{opacity:.4;cursor:default;}
 /* 미리보기: A4 페이지네이션(Paged.js) */
 .pv-head{flex:0 0 auto;background:var(--pvhead-bg);color:var(--pane-head-fg);text-align:center;padding:8px 0;font-size:12px;border-bottom:1px solid var(--pvhead-border);z-index:1;}
 #pages{flex:1 1 auto;min-height:0;overflow:auto;padding:24px 12px;scrollbar-width:thin;scrollbar-color:var(--sb-thumb) var(--sb-track);}
@@ -138,7 +163,7 @@ body.drag .drop-box{border-color:var(--accent);background:color-mix(in srgb,var(
 .content p{margin:8px 0;overflow-wrap:anywhere;} .content ul,.content ol{margin:8px 0;padding-left:20px;} .content li{margin:3px 0;overflow-wrap:anywhere;}
 .content h1,.content h2,.content h3,.content h4{overflow-wrap:anywhere;}
 .content strong,.content b{color:#0f172a;}
-.content code{font-family:"Cascadia Code","Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;font-size:calc(var(--doc-size) * 0.857);background:#f1f5f9;padding:1px 4px;border-radius:3px;color:#0f172a;word-break:break-all;}
+.content code{font-family:"Cascadia Code","Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;font-size:calc(var(--doc-size) * 0.857);background:#f1f5f9;padding:1px 4px;border-radius:3px;color:#0f172a;}
 .content pre{font-family:"Cascadia Code","Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;font-size:calc(var(--doc-size) * 0.81);background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .content pre code{background:none;padding:0;color:inherit;}
 .content pre .cl{display:block;}   /* 코드 각 줄을 블록으로 → Paged.js 가 페이지 경계에서 줄 단위 분할(긴 코드블록 잘림 방지). MDeautify 이식(A1). */
@@ -152,7 +177,7 @@ body.drag .drop-box{border-color:var(--accent);background:color-mix(in srgb,var(
 .content thead{display:table-header-group;}
 .content th{background:var(--brand);color:#fff;text-align:left;padding:6px 8px;font-size:calc(var(--doc-size) * 0.857);word-break:break-word;overflow-wrap:anywhere;}
 .content td{border:1px solid #e2e8f0;padding:6px 8px;vertical-align:top;word-break:break-word;overflow-wrap:anywhere;}
-.content td code{word-break:break-all;}
+.content td code{overflow-wrap:anywhere;}   /* 셀 안 긴 코드(공백없는 토큰)는 칸보다 길 때만 끊음 — break-all 은 식별자를 중간에서 쪼개므로 쓰지 않는다(MDeautify v1.8.4) */
 .content tbody tr:nth-child(even){background:#f8fafc;}
 .content blockquote{background:color-mix(in srgb, var(--accent) 9%, #fff);border-left:4px solid var(--accent);padding:8px 12px;border-radius:4px;margin:12px 0;color:var(--brand);}
 .content blockquote p{margin:0;}
@@ -558,6 +583,7 @@ body{
 
 /* 탐색기 토글 — 아이콘 버튼 (MDeautify 구성) */
 #bar button#btnExplorer{display:inline-flex;align-items:center;justify-content:center;height:35px;padding:0 11px;}
+#bar button#btnExplorer[hidden]{display:none;}   /* id 규칙의 display 가 [hidden] 을 덮어 브라우저판(탐색기 비활성)에서도 버튼이 보이던 문제 */
 #bar button#btnExplorer svg{display:block;}
 #bar button#btnExplorer.on{background:color-mix(in srgb,var(--accent) 20%,transparent);}
 
