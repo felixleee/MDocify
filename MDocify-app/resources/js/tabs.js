@@ -73,6 +73,7 @@
     if(window.__syncMirror)window.__syncMirror();
     if(window.__render)window.__render(s.text,false);
     if(t){t.scrollTop=s.scroll||0;if(m){m.scrollTop=t.scrollTop;m.scrollLeft=t.scrollLeft;}}
+    var fh=document.getElementById("findHl");if(fh)fh.innerHTML="";   /* 이전 탭의 찾기 하이라이트 잔상 제거 */
     if(window.__renderFileBadge)window.__renderFileBadge();
   }
 
@@ -122,6 +123,7 @@
   async function closeTab(id){
     var s=byId(id);if(!s)return;
     if(id===activeId)snapshotActive();   /* 활성 탭이면 라이브 → 세션 반영 후 dirty 판정 */
+    var backTo=null;   /* 배경 탭을 저장하려고 잠깐 전환했다면, 닫은 뒤 원래 보던 탭으로 복귀 */
     if(isDirty(s)){
       var choice="discard";
       if(window.__confirmSave3){
@@ -133,7 +135,9 @@
       }
       if(choice==="cancel")return;
       if(choice==="save"){
-        if(id!==activeId){activeId=id;restore(s);renderTabs();}   /* 저장은 라이브(활성)에 대해서만 → 먼저 활성화 */
+        /* 저장은 라이브(활성)에 대해서만 → 먼저 활성화. ⚠️전환 전에 지금 활성 문서를 스냅샷해야 함 —
+           안 하면 그 문서의 마지막 스냅샷 이후 편집이 라이브 상태째 덮여 사라진다. */
+        if(id!==activeId){snapshotActive();backTo=activeId;activeId=id;restore(s);renderTabs();}
         var isExe=(typeof window.NL_PORT!=="undefined"&&typeof window.Neutralino!=="undefined");
         var hadPath=!!window.__mdPath;
         if(window.__saveMd)await window.__saveMd();
@@ -147,7 +151,7 @@
     sessions.splice(idx,1);
     if(!sessions.length){clearToEmpty();renderTabs();return;}
     if(wasActive){
-      var next=sessions[idx]||sessions[idx-1]||sessions[0];
+      var next=(backTo!=null&&byId(backTo))||sessions[idx]||sessions[idx-1]||sessions[0];
       activeId=next.id;restore(next);
     }
     renderTabs();
