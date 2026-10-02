@@ -268,6 +268,12 @@ body.loaded #fileBadge{display:inline-flex;}
 #tabBar .tab.dirty .tab-x{display:none;}
 #tabBar .tab.dirty:hover .tab-dot{display:none;}
 #tabBar .tab.dirty:hover .tab-x{display:inline-flex;}
+/* AI 대화가 있는 문서 표시(별) — 점과 같은 방식으로 항상 DOM 에 두고 CSS 로만 노출(MDeautify v1.8.2) */
+#tabBar .tab-ai{display:none;align-items:center;flex:0 0 auto;color:var(--accent);opacity:.9;}
+#tabBar .tab.has-ai .tab-ai{display:inline-flex;}
+/* 별이 붙는 탭은 좌우를 좁힌다 — 왼쪽 여백 12→8px, 별↔이름 간격 6→4px(gap 을 margin 으로 상쇄) */
+#tabBar .tab.has-ai{padding-left:8px;}
+#tabBar .tab.has-ai .tab-ai{margin-right:-2px;}
 /* ===== 폴더 탐색기 — MDeautify 이식(D). 토큰 어댑팅 + #drop(z:4) 위로 z-index:5 ===== */
 #explorer{--ex-folder:#c99a3b;position:relative;z-index:5;flex:0 0 214px;min-width:120px;max-width:560px;display:flex;flex-direction:column;min-height:0;background:var(--ed-bg);overflow:hidden;}
 #exResizer{flex:0 0 5px;cursor:col-resize;background:var(--ed-border);position:relative;z-index:5;}

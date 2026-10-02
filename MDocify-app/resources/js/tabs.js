@@ -3,7 +3,8 @@
    기존 전역변수(__mdPath·__mdDir·__mdName·__fname·__drop·__imgFiles + 편집기 내용 + 저장 기준선)는
    '활성 문서의 라이브 상태'로 두고 → 탭 전환 때만 스냅샷/복원(기존 로직 재사용).
 
-   세션: {id, path, dir, name, fname, text, baseline, drop, imgFiles, scroll}
+   세션: {id, path, dir, name, fname, text, baseline, drop, imgFiles, scroll, ai}
+   - ai = 그 문서의 AI 대화 세션(ai-chat.js __aiSnapshot/__aiRestore, MDeautify v1.8.2). 대화가 있는 탭엔 별 표시(.has-ai).
    - baseline = 마지막 저장/로드 시점 내용(변경감지 기준). text!==baseline → dirty.
    - path 있는 문서는 경로로 중복 방지(이미 열렸으면 그 탭 포커스). path 없는 문서(드롭·브라우저)는 항상 새 탭.
 
@@ -22,6 +23,17 @@
   function isDirty(s){return !!s&&s.text!==s.baseline;}
   function el(tag,cls){var d=document.createElement(tag);if(cls)d.className=cls;return d;}
 
+  /* ---- AI 대화 표시(별) — MDeautify v1.8.2 ----
+     활성 탭은 s.ai 가 마지막 스냅샷이라 뒤처진다 → 살아있는 세션에 직접 묻는다.
+     비활성 탭의 s.ai 는 세션 객체 그대로라 msgs 가 실시간으로 자란다(배경에서 받는 답변도 반영). */
+  function hasAi(s){
+    if(s.id===activeId&&window.__aiHasMsgs)return window.__aiHasMsgs();
+    return !!(s.ai&&s.ai.msgs&&s.ai.msgs.length);
+  }
+  /* 별 1개(4각 스파클) — 16x16 박스를 꽉 채우도록 가운데 정렬 */
+  var AI_SVG='<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">'+
+    '<path d="M8,1 C8,6.25 6.25,8 1,8 C6.25,8 8,9.75 8,15 C8,9.75 9.75,8 15,8 C9.75,8 8,6.25 8,1 Z"/></svg>';
+
   /* ---- 렌더 ---- */
   function renderTabs(){
     ensureBar();if(!bar)return;
@@ -29,13 +41,15 @@
     bar.hidden=false;
     bar.innerHTML="";
     sessions.forEach(function(s){
-      var t=el("div","tab"+(s.id===activeId?" active":"")+(isDirty(s)?" dirty":""));
+      var ai=hasAi(s);
+      var t=el("div","tab"+(s.id===activeId?" active":"")+(isDirty(s)?" dirty":"")+(ai?" has-ai":""));
       t.setAttribute("data-id",s.id);
-      t.title=s.path||s.name;
+      t.title=(s.path||s.name)+(ai?"  ·  AI 대화 있음":"");
+      var sp=el("span","tab-ai");sp.setAttribute("aria-hidden","true");sp.innerHTML=AI_SVG;
       var nm=el("span","tab-name");nm.textContent=s.name||"문서";
       var dot=el("span","tab-dot");dot.setAttribute("aria-hidden","true");
       var x=el("button","tab-x");x.type="button";x.title="닫기";x.setAttribute("aria-label","닫기");x.innerHTML="&#10005;";
-      t.appendChild(nm);t.appendChild(dot);t.appendChild(x);
+      t.appendChild(sp);t.appendChild(nm);t.appendChild(dot);t.appendChild(x);
       t.addEventListener("mousedown",function(e){if(e.button===1){e.preventDefault();closeTab(s.id);}});   /* 가운데 클릭=닫기 */
       t.addEventListener("click",function(e){
         if(e.target===x||x.contains(e.target)){e.stopPropagation();closeTab(s.id);return;}
@@ -60,6 +74,7 @@
     s.name=window.__mdName||s.name;s.fname=window.__fname||s.fname;
     s.drop=window.__drop||{};s.imgFiles=window.__imgFiles||[];
     if(t)s.scroll=t.scrollTop;
+    if(window.__aiSnapshot)s.ai=window.__aiSnapshot();   /* AI 대화도 문서에 딸려 보관 */
   }
 
   /* 세션 → 라이브(전환/복원): baseline 보존(dirty 유지), __setEditorText 안 씀(그건 baseline 을 clean 으로 리셋) */
@@ -75,6 +90,7 @@
     if(t){t.scrollTop=s.scroll||0;if(m){m.scrollTop=t.scrollTop;m.scrollLeft=t.scrollLeft;}}
     var fh=document.getElementById("findHl");if(fh)fh.innerHTML="";   /* 이전 탭의 찾기 하이라이트 잔상 제거 */
     if(window.__renderFileBadge)window.__renderFileBadge();
+    if(window.__aiRestore)window.__aiRestore(s.ai);   /* 이 문서의 대화로 교체(없으면 새 대화) */
   }
 
   function switchTo(id){
@@ -103,6 +119,7 @@
     document.body.classList.add("loaded");if(window.__relayoutPanes)window.__relayoutPanes();
     if(window.__setEditorText)window.__setEditorText(s.text);
     if(window.__renderFileBadge)window.__renderFileBadge();
+    if(window.__aiRestore)window.__aiRestore(s.ai);   /* 새 문서 = 새 대화(restore 를 안 거치는 경로라 여기서 직접 — 빠뜨리면 이전 대화가 새 문서로 샘) */
     renderTabs();
   }
 
@@ -170,6 +187,17 @@
     },120);
   };
 
+  /* AI 대화가 생기거나 비워질 때 별 표시만 갱신(ai-chat 이 메시지 경계마다 호출) */
+  window.__tabsSyncAi=function(){
+    if(!bar)return;
+    sessions.forEach(function(s){
+      var chip=bar.querySelector('.tab[data-id="'+s.id+'"]');
+      if(!chip)return;
+      var ai=hasAi(s);
+      chip.classList.toggle("has-ai",ai);
+      chip.title=(s.path||s.name)+(ai?"  ·  AI 대화 있음":"");
+    });
+  };
   window.__openDoc=openDoc;
   window.__tabsCount=function(){return sessions.length;};
   window.__closeActiveTab=function(){if(activeId!=null)closeTab(activeId);};
@@ -179,7 +207,8 @@
      - "커서가 뷰어/에디터에 있을 때"만: 모달·팝오버가 떠 있으면 양보.
      - capture + preventDefault 로 웹뷰 기본보다 먼저 가로챈다(exe 에서만 유효). */
   function anyOverlayOpen(){
-    var ids=["appModal","themeModal"];
+    /* 설정·릴리스 노트·업데이트·AI 로그인 안내 창이 떠 있어도 양보(뒤의 문서를 닫지 않게) — 다른 두 앱과 동일 + loginGuide */
+    var ids=["appModal","themeModal","settingsModal","notesModal","updModal","loginGuide"];
     for(var i=0;i<ids.length;i++){var m=document.getElementById(ids[i]);if(m&&!m.hidden)return true;}
     var fp=document.getElementById("filePop");if(fp&&!fp.hidden)return true;   /* 파일 팝오버 열림 → 양보 */
     return false;
@@ -190,6 +219,7 @@
     if(e.repeat)return;                                   /* 키 반복으로 여러 탭이 우르르 닫히는 것 방지 */
     if(activeId==null)return;                             /* 열린 문서 없음 → 기본 동작 양보 */
     if(anyOverlayOpen())return;                           /* 저장/설정 등 떠 있음 → 양보 */
+    var ae=document.activeElement;if(ae&&(ae.id==="fbFind"||ae.id==="fbRepl"))return;   /* 찾기·바꾸기 입력 중 → 양보 */
     e.preventDefault();
     closeTab(activeId);
   },true);
